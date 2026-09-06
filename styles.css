@@ -1,0 +1,232 @@
+/* ---- Time design tokens -------------------------------------------------- */
+:root{
+  --ink:#101A2B;        /* deep navy — chrome */
+  --ink-2:#1B2A44;
+  --ink-3:#26395a;
+  --paper:#F4F6F9;      /* app background */
+  --surface:#FFFFFF;
+  --gold:#2E6FB0;       /* Scientific Gate blue — accent */
+  --gold-2:#57C2F0;     /* SG cyan highlight (on dark chrome) */
+  --gold-soft:#E9F3FB;  /* light blue tint (row hover) */
+  --teal:#1F7A6B;       /* positive */
+  --red:#B23A48;        /* deductions / negative */
+  --text:#1B2434;
+  --muted:#6A7688;
+  --line:#E3E7EE;
+  --line-2:#EEF1F6;
+  --radius:12px;
+  --radius-sm:8px;
+  --shadow:0 1px 2px rgba(16,26,43,.06), 0 8px 24px rgba(16,26,43,.05);
+  --font:"Cairo", system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--font);color:var(--text);background:var(--paper);
+  font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.01em}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---- App shell ----------------------------------------------------------- */
+.app{display:flex;min-height:100vh}
+.sidebar{
+  width:246px;flex-shrink:0;background:var(--ink);color:#cdd6e4;
+  display:flex;flex-direction:column;position:sticky;top:0;height:100vh;
+}
+.brand{display:flex;align-items:center;gap:12px;padding:20px 20px 16px}
+.brand .logo-tile{background:#fff;border-radius:10px;padding:7px 9px;display:flex;
+  align-items:center;box-shadow:0 2px 8px #0003;flex-shrink:0}
+.brand .logo-tile img{display:block;height:34px;width:auto}
+.brand .word{display:flex;flex-direction:column;line-height:1.1}
+.brand .word b{color:#fff;font-size:22px;letter-spacing:.02em}
+.brand .word span{color:var(--gold-2);font-size:11px;font-weight:600}
+.nav{padding:8px 12px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.nav a{
+  display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:var(--radius-sm);
+  color:#aeb9cb;font-weight:600;font-size:14px;transition:background .12s,color .12s;
+}
+.nav a svg{width:18px;height:18px;flex-shrink:0;opacity:.9}
+.nav a:hover{background:var(--ink-2);color:#fff}
+.nav a.active{background:linear-gradient(90deg,var(--ink-3),var(--ink-2));color:#fff}
+.nav a.active svg{color:var(--gold-2);opacity:1}
+.nav .sep{height:1px;background:#ffffff14;margin:8px 12px}
+.side-foot{margin-top:auto;padding:14px 16px;border-top:1px solid #ffffff14;
+  display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#8b98ad}
+.side-foot a{display:inline-flex;align-items:center;gap:6px}
+.side-foot a svg{width:16px;height:16px}
+.side-foot a{color:var(--gold-2);font-weight:600}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;justify-content:space-between;
+  padding:16px 28px;background:var(--surface);border-bottom:1px solid var(--line)}
+.topbar h1{font-size:20px}
+.topbar .tools{display:flex;align-items:center;gap:14px}
+.lang-toggle{border:1px solid var(--line);background:var(--surface);border-radius:20px;
+  padding:5px 14px;font-weight:700;font-size:13px;cursor:pointer;color:var(--text)}
+.lang-toggle:hover{border-color:var(--gold)}
+.who{font-size:13px;color:var(--muted)}
+.content{padding:28px;max-width:1200px;width:100%}
+
+/* ---- Buttons ------------------------------------------------------------- */
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid transparent;
+  border-radius:var(--radius-sm);padding:9px 16px;font-family:inherit;font-weight:700;
+  font-size:14px;cursor:pointer;transition:.12s;background:var(--surface);color:var(--text)}
+.btn svg{width:16px;height:16px}
+.btn-primary{background:var(--ink);color:#fff}
+.btn-primary:hover{background:var(--ink-2)}
+.btn-gold{background:var(--gold);color:#fff;border-color:var(--gold)}
+.btn-gold:hover{background:#255d97;border-color:#255d97}
+.btn-ghost{border-color:var(--line);color:var(--text)}
+.btn-ghost:hover{border-color:var(--ink);}
+.btn-danger{color:var(--red);border-color:var(--line)}
+.btn-danger:hover{background:#fbeaec;border-color:var(--red)}
+.btn-sm{padding:6px 11px;font-size:13px}
+.row-actions{display:flex;gap:6px;align-items:center}
+
+/* ---- Cards / sections ---------------------------------------------------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow)}
+.card-h{display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--line-2)}
+.card-h h2{font-size:16px}
+.card-b{padding:20px}
+.grid{display:grid;gap:20px}
+.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:16px;flex-wrap:wrap}
+.page-head .sub{color:var(--muted);font-size:14px;margin-top:3px}
+
+/* ---- Dashboard hero + tiles --------------------------------------------- */
+.hero{background:linear-gradient(120deg,var(--ink),var(--ink-3));color:#fff;
+  border-radius:var(--radius);padding:26px 28px;display:flex;justify-content:space-between;
+  align-items:flex-end;gap:20px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset-inline-end:-40px;top:-40px;width:200px;height:200px;
+  background:radial-gradient(circle,var(--gold) 0,transparent 70%);opacity:.16}
+.hero .label{color:#b9c4d6;font-size:13px;font-weight:600}
+.hero .big{font-size:42px;font-weight:800;letter-spacing:-.02em;margin-top:4px}
+.hero .big small{font-size:18px;color:var(--gold-2);font-weight:700;margin-inline-start:6px}
+.hero .aside{text-align:end}
+.hero .aside .n{font-size:26px;font-weight:800}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+.tile .k{color:var(--muted);font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px}
+.tile .k svg{width:16px;height:16px;color:var(--gold)}
+.tile .v{font-size:26px;font-weight:800;margin-top:8px;letter-spacing:-.01em}
+.tile .v small{font-size:13px;color:var(--muted);font-weight:600}
+
+/* ---- Tables -------------------------------------------------------------- */
+.table-wrap{overflow-x:auto}
+table.data{width:100%;border-collapse:collapse;font-size:14px}
+table.data th{color:var(--muted);font-weight:700;font-size:12.5px;text-align:start;
+  padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.data td{padding:12px 14px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+table.data tr:last-child td{border-bottom:none}
+table.data tbody tr:hover{background:var(--gold-soft)}
+table.data .r{text-align:end;font-variant-numeric:tabular-nums}
+table.data tfoot td{font-weight:800;border-top:2px solid var(--line);background:#fbfcfe}
+.link{color:var(--ink);font-weight:700}
+.link:hover{color:var(--gold)}
+.empty{padding:44px;text-align:center;color:var(--muted)}
+
+/* ---- Badges -------------------------------------------------------------- */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.badge-green{background:#e4f2ee;color:var(--teal)}
+.badge-grey{background:#eef1f6;color:var(--muted)}
+.badge-gold{background:var(--gold-soft);color:#8a6a1f}
+.badge-red{background:#fbeaec;color:var(--red)}
+
+/* ---- Forms --------------------------------------------------------------- */
+form .fields{display:grid;grid-template-columns:repeat(2,1fr);gap:16px 20px}
+form .fields.one{grid-template-columns:1fr}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.full{grid-column:1/-1}
+label{font-size:13px;font-weight:700;color:var(--text)}
+input,select,textarea{font-family:inherit;font-size:14px;padding:10px 12px;
+  border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);color:var(--text)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);
+  box-shadow:0 0 0 3px var(--gold-soft)}
+.form-actions{display:flex;gap:10px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line-2)}
+.hint{font-size:12.5px;color:var(--muted)}
+.fieldset-title{font-size:13px;font-weight:800;color:var(--gold);text-transform:none;
+  margin:8px 0 2px;grid-column:1/-1}
+
+/* ---- Flash --------------------------------------------------------------- */
+.flash{padding:12px 16px;border-radius:var(--radius-sm);margin-bottom:18px;font-weight:600}
+.flash.ok{background:#e4f2ee;color:var(--teal)}
+.flash.error{background:#fbeaec;color:var(--red)}
+
+/* ---- Search bar ---------------------------------------------------------- */
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+.toolbar input[type=text]{min-width:220px}
+.spacer{flex:1}
+
+/* ---- Bars (dept breakdown) ---------------------------------------------- */
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.bar-row .lbl{width:120px;font-size:13px;font-weight:600;color:var(--text)}
+.bar-track{flex:1;background:var(--line-2);border-radius:6px;height:10px;overflow:hidden}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-2));border-radius:6px}
+.bar-row .n{width:34px;text-align:end;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* ---- Login --------------------------------------------------------------- */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--ink),#0a1220)}
+.login-card{background:var(--surface);border-radius:16px;padding:38px 34px;width:360px;
+  box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.login-card .brand{justify-content:center;padding:0 0 6px}
+.login-card h2{text-align:center;margin-bottom:4px}
+.login-card p.sub{text-align:center;color:var(--muted);font-size:13px;margin:0 0 22px}
+.login-card .field{margin-bottom:14px}
+.login-card .btn{width:100%;justify-content:center;margin-top:6px}
+.login-foot{text-align:center;margin-top:16px;font-size:12px;color:var(--muted)}
+
+/* ---- Payslip / contract print ------------------------------------------- */
+.doc{background:#fff;max-width:820px;margin:0 auto;border:1px solid var(--line);
+  border-radius:var(--radius);padding:0;overflow:hidden}
+.doc-head{background:var(--ink);color:#fff;padding:24px 30px;display:flex;
+  justify-content:space-between;align-items:center}
+.doc-head .co{font-size:20px;font-weight:800}
+.doc-head .meta{text-align:end;font-size:13px;color:#c7d0df}
+.doc-body{padding:28px 30px}
+.pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:18px}
+.pay-col h3{font-size:13px;color:var(--gold);margin-bottom:8px;padding-bottom:6px;
+  border-bottom:1px solid var(--line)}
+.pay-line{display:flex;justify-content:space-between;padding:7px 0;font-size:14px;border-bottom:1px solid var(--line-2)}
+.pay-line.tot{font-weight:800;border-top:2px solid var(--line);border-bottom:none;margin-top:4px;padding-top:10px}
+.net-band{margin-top:22px;background:var(--gold-soft);border:1px solid var(--gold);
+  border-radius:var(--radius);padding:16px 22px;display:flex;justify-content:space-between;align-items:center}
+.net-band .lbl{font-weight:700;color:#8a6a1f}
+.net-band .amt{font-size:30px;font-weight:800;color:var(--ink)}
+.info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:6px}
+.info-grid .c .l{font-size:11.5px;color:var(--muted);font-weight:700}
+.info-grid .c .v{font-weight:700;margin-top:2px}
+.contract-doc{max-width:820px;margin:0 auto;background:#fff;border:1px solid var(--line);
+  border-radius:var(--radius);padding:44px 50px;line-height:2}
+.contract-doc h1{text-align:center;margin-bottom:6px}
+.contract-doc h2{text-align:center;font-size:15px;color:var(--muted);font-weight:600;margin-bottom:26px}
+.contract-doc .clause{margin-bottom:14px}
+.contract-doc .sign{display:flex;justify-content:space-between;margin-top:60px}
+.print-bar{max-width:820px;margin:0 auto 16px;display:flex;gap:10px;justify-content:flex-end}
+
+/* ---- RTL ----------------------------------------------------------------- */
+[dir=rtl] body{font-family:var(--font)}
+[dir=rtl] .hero .aside{text-align:start}
+
+/* ---- Responsive ---------------------------------------------------------- */
+@media(max-width:860px){
+  .sidebar{position:fixed;inset-inline-start:-260px;z-index:40;transition:.2s}
+  .sidebar.open{inset-inline-start:0}
+  .menu-btn{display:inline-flex}
+  form .fields{grid-template-columns:1fr}
+  .pay-grid,.info-grid{grid-template-columns:1fr 1fr}
+  .hero{flex-direction:column;align-items:flex-start}
+}
+.menu-btn{display:none;background:none;border:1px solid var(--line);border-radius:8px;
+  padding:7px 10px;cursor:pointer}
+
+/* ---- Print --------------------------------------------------------------- */
+@media print{
+  .sidebar,.topbar,.print-bar,.no-print{display:none!important}
+  .content{padding:0}
+  body{background:#fff}
+  .doc,.contract-doc{border:none;box-shadow:none;max-width:100%}
+}

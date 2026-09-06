@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('new_grade') if not g.id else (g.code ~ ' · ' ~ loc(g,'name')) }}{% endblock %}
+{% block content %}
+<form method="post" class="card"><div class="card-b">
+  <div class="fields">
+    <div class="field"><label>{{ t('grade_code') }}</label><input name="code" value="{{ g.code or '' }}" required></div>
+    <div class="field"><label>{{ t('order') if false else 'Order' }}</label><input type="number" name="order" value="{{ g.order or 0 }}"></div>
+    <div class="field"><label>{{ t('grade_name') }}</label><input name="name" value="{{ g.name or '' }}" required></div>
+    <div class="field"><label>{{ t('name_ar') }}</label><input name="name_ar" value="{{ g.name_ar or '' }}" dir="rtl"></div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-gold">{{ t('save') }}</button>
+    <a class="btn btn-ghost" href="{{ url_for('grades') }}">{{ t('back') }}</a>
+    {% if g.id %}
+    <span class="spacer"></span>
+    <form method="post" action="{{ url_for('grade_delete', gid=g.id) }}" data-confirm="{{ t('confirm_delete') }}" style="display:inline">
+      <button class="btn btn-danger btn-sm">{{ t('delete') }}</button></form>
+    {% endif %}
+  </div>
+</div></form>
+
+{% if g.id %}
+<div class="card" style="margin-top:20px">
+  <div class="card-h"><h2>{{ t('points') }}</h2></div>
+  <div class="table-wrap"><table class="data">
+    <thead><tr><th>{{ t('spine_point') }}</th><th class="r">{{ t('monthly_salary') }}</th><th></th></tr></thead>
+    <tbody>
+    {% for p in g.points %}
+      <tr><td class="num">{{ p.point_no }}</td><td class="r num">{{ p.monthly_salary | money }}</td>
+          <td class="r"><form method="post" action="{{ url_for('point_delete', pid=p.id) }}" style="display:inline">
+            <button class="btn btn-danger btn-sm">{{ t('delete') }}</button></form></td></tr>
+    {% else %}<tr><td colspan="3" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+  <div class="card-b" style="border-top:1px solid var(--line-2)">
+    <form method="post" action="{{ url_for('grade_add_point', gid=g.id) }}" style="display:flex;gap:10px;align-items:end;flex-wrap:wrap">
+      <div class="field"><label>{{ t('spine_point') }}</label><input type="number" name="point_no" style="width:110px" required></div>
+      <div class="field"><label>{{ t('monthly_salary') }}</label><input type="number" step="0.01" name="monthly_salary" required></div>
+      <button class="btn btn-gold">{{ ic('plus') }}{{ t('add_point') }}</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

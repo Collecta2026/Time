@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('nav_departments') }}{% endblock %}
+{% block content %}
+<div class="grid" style="grid-template-columns:1.4fr 1fr">
+  <div class="card">
+    <div class="card-h"><h2>{{ t('nav_departments') }}</h2></div>
+    <div class="table-wrap"><table class="data">
+      <thead><tr><th>{{ t('name') }}</th><th class="r">{{ t('headcount') }}</th><th></th></tr></thead>
+      <tbody>
+      {% for d in rows %}
+        <tr><td>{{ loc(d,'name') }}</td><td class="r num">{{ counts[d.id] }}</td>
+            <td class="r"><form method="post" action="{{ url_for('department_delete', did=d.id) }}" data-confirm="{{ t('confirm_delete') }}" style="display:inline">
+              <button class="btn btn-danger btn-sm">{{ t('delete') }}</button></form></td></tr>
+      {% else %}<tr><td colspan="3" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><h2>{{ t('add') }}</h2></div>
+    <div class="card-b">
+      <form method="post">
+        <div class="field" style="margin-bottom:12px"><label>{{ t('name') }}</label><input name="name" required></div>
+        <div class="field" style="margin-bottom:16px"><label>{{ t('name_ar') }}</label><input name="name_ar" dir="rtl"></div>
+        <button class="btn btn-gold">{{ ic('plus') }}{{ t('add') }}</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

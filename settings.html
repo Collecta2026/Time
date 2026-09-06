@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('nav_settings') }}{% endblock %}
+{% block content %}
+<form method="post" class="card"><div class="card-b">
+  <div class="fields">
+    <div class="fieldset-title">{{ t('nav_settings') }}</div>
+    <div class="field"><label>Company name</label><input name="company_name" value="{{ s.company_name }}"></div>
+    <div class="field"><label>{{ t('name_ar') }}</label><input name="company_name_ar" value="{{ s.company_name_ar }}" dir="rtl"></div>
+    <div class="field full"><label>{{ t('address') }}</label><input name="address" value="{{ s.address }}"></div>
+    <div class="field"><label>Tax ID</label><input name="tax_id" value="{{ s.tax_id }}"></div>
+    <div class="field"><label>Insurance no.</label><input name="insurance_no" value="{{ s.insurance_no }}"></div>
+    <div class="field"><label>Currency</label><input name="currency" value="{{ s.currency }}"></div>
+    <div class="field"><label>{{ t('paying_bank') }}</label><input name="pay_bank_name" value="{{ s.pay_bank_name }}"></div>
+    <div class="field"><label>{{ t('bank_account') }}</label><input name="pay_bank_account" value="{{ s.pay_bank_account }}"></div>
+
+    <div class="fieldset-title">Working time — Labour Law 14/2025</div>
+    <div class="field"><label>Standard daily hours</label><input type="number" step="0.5" name="standard_daily_hours" value="{{ s.standard_daily_hours }}"></div>
+    <div class="field"><label>Standard weekly hours</label><input type="number" step="0.5" name="standard_weekly_hours" value="{{ s.standard_weekly_hours }}"></div>
+    <div class="field"><label>Days per month (pay divisor)</label><input type="number" name="days_per_month" value="{{ s.days_per_month }}"></div>
+    <div class="field"><label>Working days</label><input name="working_days" value="{{ s.working_days }}"></div>
+    <div class="field"><label>Overtime day %</label><input type="number" step="0.5" name="overtime_day_pct" value="{{ s.overtime_day_pct }}"></div>
+    <div class="field"><label>Overtime night %</label><input type="number" step="0.5" name="overtime_night_pct" value="{{ s.overtime_night_pct }}"></div>
+
+    <div class="fieldset-title">Social insurance — Law 148/2019 ({{ current_year }})</div>
+    <div class="field"><label>Employee %</label><input type="number" step="0.01" name="si_employee_pct" value="{{ s.si_employee_pct }}"></div>
+    <div class="field"><label>Employer %</label><input type="number" step="0.01" name="si_employer_pct" value="{{ s.si_employer_pct }}"></div>
+    <div class="field"><label>Emergency fund %</label><input type="number" step="0.01" name="emergency_fund_pct" value="{{ s.emergency_fund_pct }}"></div>
+    <div class="field"><label>Insurable floor</label><input type="number" step="0.01" name="si_floor" value="{{ s.si_floor }}"><span class="hint">Rises 15% each January</span></div>
+    <div class="field"><label>Insurable ceiling</label><input type="number" step="0.01" name="si_ceiling" value="{{ s.si_ceiling }}"><span class="hint">Rises 15% each January</span></div>
+
+    <div class="fieldset-title">Income tax — Law 91/2005 (amended)</div>
+    <div class="field"><label>Annual personal exemption</label><input type="number" step="0.01" name="tax_annual_exemption" value="{{ s.tax_annual_exemption }}"></div>
+
+    <div class="fieldset-title">Leave policy (days)</div>
+    <div class="field"><label>Annual — year 1</label><input type="number" name="annual_leave_y1" value="{{ s.annual_leave_y1 }}"></div>
+    <div class="field"><label>Annual — standard</label><input type="number" name="annual_leave_std" value="{{ s.annual_leave_std }}"></div>
+    <div class="field"><label>Annual — senior (10yr/50+)</label><input type="number" name="annual_leave_senior" value="{{ s.annual_leave_senior }}"></div>
+    <div class="field"><label>Casual</label><input type="number" name="casual_leave" value="{{ s.casual_leave }}"></div>
+    <div class="field"><label>Probation (months)</label><input type="number" name="probation_months" value="{{ s.probation_months }}"></div>
+    <div class="fieldset-title">{{ t('scheme_delegation') }}</div>
+    {% for b in bands %}
+    <div class="field"><label>{{ t('band') }} — {{ t('min_amount') }}</label><input type="number" step="0.01" name="band_{{ b.id }}_min" value="{{ b.min_amount }}"></div>
+    <div class="field"><label>{{ b.name }} — {{ t('max_amount') }}</label><input type="number" step="0.01" name="band_{{ b.id }}_max" value="{{ b.max_amount or '' }}" placeholder="∞"></div>
+    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="band_{{ b.id }}_fm" {{ 'checked' if b.requires_fm }} style="width:auto"> {{ t('requires_fm') }}</label>
+    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="band_{{ b.id }}_md" {{ 'checked' if b.requires_md }} style="width:auto"> {{ t('requires_md') }}</label>
+    {% endfor %}
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-gold">{{ t('save') }}</button>
+  </div>
+</div></form>
+{% endblock %}

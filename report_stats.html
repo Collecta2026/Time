@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('rep_stats') }}{% endblock %}
+{% block content %}
+<div class="tiles" style="margin-bottom:20px">
+  <div class="tile"><div class="k">{{ ic('users') }}{{ t('headcount') }}</div><div class="v num">{{ n }}</div></div>
+  <div class="tile"><div class="k">{{ ic('cash') }}{{ t('avg_salary') }}</div><div class="v num">{{ avg_salary | money }} <small>{{ settings.currency }}</small></div></div>
+  <div class="tile"><div class="k">{{ ic('users') }}{{ t('male') }} / {{ t('female') }}</div><div class="v num">{{ males }} / {{ females }}</div></div>
+  <div class="tile"><div class="k">{{ ic('chart') }}{{ t('turnover') }}</div><div class="v num">{{ turnover | round(1) }}%</div></div>
+</div>
+
+<div class="grid" style="grid-template-columns:1fr 1fr">
+  <div class="card">
+    <div class="card-h"><h2>{{ t('by_department') }}</h2></div>
+    <div class="card-b">
+      {% set maxd = (by_dept | map(attribute=1) | max) or 1 %}
+      {% for name, count in by_dept %}
+      <div class="bar-row"><span class="lbl">{{ name }}</span>
+        <span class="bar-track"><span class="bar-fill" style="width:{{ (count/maxd*100)|round(0,'floor') }}%"></span></span>
+        <span class="n num">{{ count }}</span></div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h2>{{ t('grade') }}</h2></div>
+    <div class="card-b">
+      {% set maxg = (by_grade | map(attribute=1) | max) or 1 %}
+      {% for code, count in by_grade %}
+      <div class="bar-row"><span class="lbl">{{ code }}</span>
+        <span class="bar-track"><span class="bar-fill" style="width:{{ (count/maxg*100)|round(0,'floor') }}%"></span></span>
+        <span class="n num">{{ count }}</span></div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

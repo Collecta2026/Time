@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('nav_benefits') }}{% endblock %}
+{% block content %}
+<div class="grid" style="grid-template-columns:1.6fr 1fr">
+  <div class="card">
+    <div class="card-h"><h2>{{ t('nav_benefits') }}</h2></div>
+    <div class="table-wrap"><table class="data">
+      <thead><tr><th>{{ t('name') }}</th><th>{{ t('provider') }}</th>
+        <th class="r">{{ t('employer_share') }}</th><th class="r">{{ t('employee_share') }}</th>
+        <th class="r">{{ t('members') }}</th><th></th></tr></thead>
+      <tbody>
+      {% for b in rows if b.active %}
+        <tr><td>{{ loc(b,'name') }}<div class="hint">{{ b.coverage }}</div></td>
+            <td>{{ b.provider }}</td>
+            <td class="r num">{{ b.employer_cost | money }}</td>
+            <td class="r num">{{ b.employee_cost | money }}</td>
+            <td class="r num">{{ b.members | selectattr('status','equalto','active') | list | length }}</td>
+            <td class="r"><form method="post" action="{{ url_for('benefit_delete', bid=b.id) }}" data-confirm="{{ t('confirm_delete') }}" style="display:inline">
+              <button class="btn btn-danger btn-sm">{{ t('delete') }}</button></form></td></tr>
+      {% else %}<tr><td colspan="6" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><h2>{{ t('new_plan') }}</h2></div>
+    <div class="card-b">
+      <form method="post">
+        <div class="field" style="margin-bottom:10px"><label>{{ t('name') }}</label><input name="name" required></div>
+        <div class="field" style="margin-bottom:10px"><label>{{ t('name_ar') }}</label><input name="name_ar" dir="rtl"></div>
+        <div class="field" style="margin-bottom:10px"><label>{{ t('provider') }}</label><input name="provider"></div>
+        <div class="field" style="margin-bottom:10px"><label>{{ t('employer_share') }}</label><input type="number" step="0.01" name="employer_cost"></div>
+        <div class="field" style="margin-bottom:10px"><label>{{ t('employee_share') }}</label><input type="number" step="0.01" name="employee_cost"></div>
+        <div class="field" style="margin-bottom:16px"><label>{{ t('coverage') }}</label><textarea name="coverage" rows="2"></textarea></div>
+        <button class="btn btn-gold">{{ ic('plus') }}{{ t('save') }}</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

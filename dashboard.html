@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('nav_dashboard') }}{% endblock %}
+{% block content %}
+{% set maxd = (dept_rows | map(attribute=1) | max) or 1 %}
+
+<div class="hero">
+  <div>
+    <div class="label">{{ t('monthly_payroll') }} · {{ settings.currency }}</div>
+    <div class="big num">{{ gross | money }}</div>
+    <div class="label" style="margin-top:8px">{{ t('employer_cost') }}: <b style="color:#fff">{{ er_cost | money }} {{ settings.currency }}</b></div>
+  </div>
+  <div class="aside">
+    <div class="label">{{ t('headcount') }}</div>
+    <div class="n">{{ headcount }}</div>
+  </div>
+</div>
+
+<div class="tiles" style="margin-top:20px">
+  <div class="tile">
+    <div class="k">{{ ic('wallet') }}{{ t('outstanding_loans') }}</div>
+    <div class="v num">{{ outstanding | money }} <small>{{ settings.currency }}</small></div>
+  </div>
+  <div class="tile">
+    <div class="k">{{ ic('users') }}{{ t('starters_ytd') }}</div>
+    <div class="v num">{{ starters }}</div>
+  </div>
+  <div class="tile">
+    <div class="k">{{ ic('users') }}{{ t('leavers_ytd') }}</div>
+    <div class="v num">{{ leavers }}</div>
+  </div>
+  <div class="tile">
+    <div class="k">{{ ic('cash') }}{{ t('avg_salary') }}</div>
+    <div class="v num">{{ (gross / headcount if headcount else 0) | money }} <small>{{ settings.currency }}</small></div>
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns:1.2fr 1fr;margin-top:20px">
+  <div class="card">
+    <div class="card-h"><h2>{{ t('by_department') }}</h2></div>
+    <div class="card-b">
+      {% for name, count in dept_rows %}
+        <div class="bar-row">
+          <span class="lbl">{{ name }}</span>
+          <span class="bar-track"><span class="bar-fill" style="width:{{ (count / maxd * 100) | round(0, 'floor') }}%"></span></span>
+          <span class="n num">{{ count }}</span>
+        </div>
+      {% else %}
+        <div class="empty">{{ t('no_records') }}</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><h2>{{ t('recent_hires') }}</h2></div>
+    <div class="table-wrap">
+      <table class="data">
+        <tbody>
+        {% for e in recent %}
+          <tr>
+            <td><a class="link" href="{{ url_for('employee_detail', eid=e.id) }}">{{ loc(e,'name') }}</a>
+                <div class="hint">{{ e.job_title }}</div></td>
+            <td class="r num">{{ e.hire_date | d }}</td>
+          </tr>
+        {% else %}
+          <tr><td class="empty">{{ t('no_records') }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

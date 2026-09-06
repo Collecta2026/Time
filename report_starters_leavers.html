@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('rep_starters_leavers') }}{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <form method="get" style="display:flex;gap:10px;align-items:center">
+    <input type="number" name="year" value="{{ y }}" style="width:110px">
+    <button class="btn btn-ghost btn-sm">{{ t('search') }}</button>
+  </form>
+</div>
+<div class="grid" style="grid-template-columns:1fr 1fr">
+  <div class="card">
+    <div class="card-h"><h2>{{ t('starters_ytd') }} ({{ starters|length }})</h2></div>
+    <div class="table-wrap"><table class="data">
+      <thead><tr><th>{{ t('code') }}</th><th>{{ t('name') }}</th><th class="r">{{ t('hire_date') }}</th></tr></thead>
+      <tbody>
+      {% for e in starters %}
+        <tr><td class="num">{{ e.code }}</td><td><a class="link" href="{{ url_for('employee_detail', eid=e.id) }}">{{ loc(e,'name') }}</a></td><td class="r num">{{ e.hire_date | d }}</td></tr>
+      {% else %}<tr><td colspan="3" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h2>{{ t('leavers_ytd') }} ({{ leavers|length }})</h2></div>
+    <div class="table-wrap"><table class="data">
+      <thead><tr><th>{{ t('code') }}</th><th>{{ t('name') }}</th><th class="r">{{ t('end_date') }}</th></tr></thead>
+      <tbody>
+      {% for e in leavers %}
+        <tr><td class="num">{{ e.code }}</td><td><a class="link" href="{{ url_for('employee_detail', eid=e.id) }}">{{ loc(e,'name') }}</a></td><td class="r num">{{ e.end_date | d }}</td></tr>
+      {% else %}<tr><td colspan="3" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+</div>
+{% endblock %}

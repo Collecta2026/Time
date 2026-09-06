@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('nav_payroll') }} · {{ run.period_label }}{% endblock %}
+{% block content %}
+{% set badge = {'draft':'badge-grey','prepared':'badge-gold','approved':'badge-gold','authorised':'badge-green','paid':'badge-green'} %}
+<div class="page-head">
+  <div>
+    <h2>{{ run.period_label }} <span class="badge {{ badge.get(run.status,'badge-grey') }}">{{ t(run.status) }}</span></h2>
+    <div class="sub">{{ slips | length }} {{ t('active_employees') }} · {{ settings.currency }}
+      {% if run.status=='prepared' %} · {{ t('awaiting') }}: {{ t('role_finance_manager') }}
+      {% elif run.status=='approved' %} · {{ t('awaiting') }}: {{ t('role_md') }}{% endif %}</div>
+  </div>
+  <div class="row-actions">
+    <a class="btn btn-ghost" href="{{ url_for('payroll_schedule', rid=run.id) }}">{{ ic('print') }}{{ t('payment_schedule') }}</a>
+    <a class="btn btn-ghost" href="{{ url_for('payroll_insurance', rid=run.id) }}">{{ ic('print') }}{{ t('insurance_schedule') }}</a>
+    <a class="btn btn-ghost" href="{{ url_for('payroll_export', rid=run.id) }}">{{ ic('download') }}{{ t('export') }}</a>
+
+    {% if run.status=='draft' and current_user.has_role('hr') %}
+      <form method="post" action="{{ url_for('payroll_recompute', rid=run.id) }}" style="display:inline">
+        <button class="btn btn-ghost">{{ t('run') }}</button></form>
+      <form method="post" action="{{ url_for('payroll_submit', rid=run.id) }}" style="display:inline">
+        <button class="btn btn-gold">{{ t('submit_approval') }}</button></form>
+    {% endif %}
+
+    {% if run.status=='prepared' and current_user.has_role('finance_manager') %}
+      <form method="post" action="{{ url_for('payroll_approve', rid=run.id) }}" style="display:inline">
+        <button class="btn btn-gold">{{ t('approve') }}</button></form>
+    {% endif %}
+
+    {% if run.status=='approved' and current_user.has_role('md') %}
+      <form method="post" action="{{ url_for('payroll_authorise', rid=run.id) }}"
+            data-confirm="Authorise this payroll for payment? Loan balances will be reduced." style="display:inline">
+        <button class="btn btn-gold">{{ t('authorise') }}</button></form>
+    {% endif %}
+
+    {% if run.status=='authorised' and current_user.has_role('finance_manager') %}
+      <form method="post" action="{{ url_for('payroll_mark_paid', rid=run.id) }}" style="display:inline">
+        <button class="btn btn-primary">{{ t('mark_paid') }}</button></form>
+    {% endif %}
+  </div>
+</div>
+
+{% if run.status in ['prepared','approved'] and current_user.has_role('finance_manager','md') %}
+<div class="card" style="margin-bottom:16px"><div class="card-b">
+  <form method="post" action="{{ url_for('payroll_reject', rid=run.id) }}" style="display:flex;gap:10px;align-items:end;flex-wrap:wrap">
+    <div class="field" style="flex:1;min-width:240px"><label>{{ t('reject') }} — {{ t('reason') }}</label>
+      <input name="reason" placeholder="{{ t('reason') }}"></div>
+    <button class="btn btn-danger">{{ t('reject') }}</button>
+  </form>
+</div></div>
+{% endif %}
+
+{% if run.prepared_by or run.reject_reason %}
+<div class="card" style="margin-bottom:16px">
+  <div class="card-h"><h2>{{ t('delegation_trail') }}</h2></div>
+  <div class="card-b">
+    <div class="info-grid">
+      {% if run.prepared_by %}<div class="c"><div class="l">{{ t('prepared_by') }}</div><div class="v">{{ run.prepared_by }}<div class="hint num">{{ run.prepared_at | d }}</div></div></div>{% endif %}
+      {% if run.approved_by %}<div class="c"><div class="l">{{ t('approved_by') }}</div><div class="v">{{ run.approved_by }}<div class="hint num">{{ run.approved_at | d }}</div></div></div>{% endif %}
+      {% if run.authorised_by %}<div class="c"><div class="l">{{ t('authorised_by') }}</div><div class="v">{{ run.authorised_by }}<div class="hint num">{{ run.authorised_at | d }}</div></div></div>{% endif %}
+      {% if run.paid_by %}<div class="c"><div class="l">{{ t('paid_by') }}</div><div class="v">{{ run.paid_by }}<div class="hint num">{{ run.paid_at | d }}</div></div></div>{% endif %}
+    </div>
+    {% if run.reject_reason %}<div class="flash error" style="margin:14px 0 0">{{ t('returned_reason') }}: {{ run.reject_reason }}</div>{% endif %}
+    <div class="hint" style="margin-top:12px">{{ t('scheme_delegation') }}:
+      {{ t('requires_fm') }}{% if signoffs.md %} + {{ t('requires_md') }}{% endif %}
+      {% if signoffs.band %}({{ signoffs.band.name }}){% endif %}</div>
+  </div>
+</div>
+{% endif %}
+
+<div class="tiles" style="margin-bottom:20px">
+  <div class="tile"><div class="k">{{ t('gross') }}</div><div class="v num">{{ totals.gross | money }}</div></div>
+  <div class="tile"><div class="k">{{ t('income_tax') }}</div><div class="v num">{{ totals.tax | money }}</div></div>
+  <div class="tile"><div class="k">{{ t('si_employee') }}</div><div class="v num">{{ totals.si_employee | money }}</div></div>
+  <div class="tile"><div class="k">{{ t('net_pay') }}</div><div class="v num" style="color:var(--teal)">{{ totals.net | money }}</div></div>
+  <div class="tile"><div class="k">{{ t('employer_cost') }}</div><div class="v num">{{ totals.employer_cost | money }}</div></div>
+</div>
+
+<div class="card">
+  <div class="table-wrap"><table class="data">
+    <thead><tr>
+      <th>{{ t('code') }}</th><th>{{ t('name') }}</th>
+      <th class="r">{{ t('gross') }}</th><th class="r">{{ t('si_employee') }}</th>
+      <th class="r">{{ t('income_tax') }}</th><th class="r">{{ t('nav_loans') }}</th>
+      <th class="r">{{ t('deductions') }}</th><th class="r">{{ t('net_pay') }}</th><th></th>
+    </tr></thead>
+    <tbody>
+    {% for p in slips %}
+      <tr>
+        <td class="num">{{ p.employee.code }}</td>
+        <td>{{ loc(p.employee,'name') }}</td>
+        <td class="r num">{{ p.gross | money }}</td>
+        <td class="r num">{{ p.si_employee | money }}</td>
+        <td class="r num">{{ p.income_tax | money }}</td>
+        <td class="r num">{{ p.loan_deduction | money }}</td>
+        <td class="r num">{{ p.total_deductions | money }}</td>
+        <td class="r num"><b>{{ p.net_pay | money }}</b></td>
+        <td class="r"><a class="btn btn-ghost btn-sm" href="{{ url_for('payslip', pid=p.id) }}">{{ t('payslip') }}</a></td>
+      </tr>
+    {% else %}<tr><td colspan="9" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+    </tbody>
+    <tfoot><tr>
+      <td colspan="2">{{ t('total') }}</td>
+      <td class="r num">{{ totals.gross | money }}</td>
+      <td class="r num">{{ totals.si_employee | money }}</td>
+      <td class="r num">{{ totals.tax | money }}</td>
+      <td class="r num"></td>
+      <td class="r num">{{ totals.deductions | money }}</td>
+      <td class="r num">{{ totals.net | money }}</td><td></td>
+    </tr></tfoot>
+  </table></div>
+</div>
+
+{% if not run.locked and current_user.has_role('hr') %}
+<div style="margin-top:18px">
+  <form method="post" action="{{ url_for('payroll_delete', rid=run.id) }}" data-confirm="{{ t('confirm_delete') }}">
+    <button class="btn btn-danger btn-sm">{{ t('delete') }}</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

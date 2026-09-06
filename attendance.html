@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('nav_attendance') }}{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <form method="get" style="display:flex;gap:10px;align-items:center">
+    <input type="number" name="year" value="{{ y }}" style="width:100px">
+    <select name="month" onchange="this.form.submit()">
+      {% for i in range(1,13) %}<option value="{{ i }}" {{ 'selected' if i==m }}>{{ '%02d'|format(i) }}</option>{% endfor %}
+    </select>
+    <button class="btn btn-ghost btn-sm">{{ t('search') }}</button>
+  </form>
+  <span class="spacer"></span>
+  <a class="btn btn-ghost" href="{{ url_for('attendance_template') }}">{{ ic('download') }}{{ t('download_template') }}</a>
+  <a class="btn btn-gold" href="{{ url_for('attendance_import') }}">{{ ic('upload') }}{{ t('import_attendance') }}</a>
+</div>
+
+<div class="card">
+  <div class="table-wrap"><table class="data">
+    <thead><tr><th>{{ t('work_date') }}</th><th>{{ t('name') }}</th>
+      <th class="r">{{ t('hours_worked') }}</th><th class="r">{{ t('expected_hours') }}</th>
+      <th class="r">{{ t('overtime') }}</th><th class="r">{{ t('shortfall') }}</th><th>{{ t('status') }}</th></tr></thead>
+    <tbody>
+    {% for a in rows %}
+      {% set short = (a.expected_hours or 0) - (a.hours_worked or 0) %}
+      <tr><td class="num">{{ a.work_date | d }}</td>
+          <td>{{ loc(a.employee,'name') }}</td>
+          <td class="r num">{{ a.hours_worked }}</td>
+          <td class="r num">{{ a.expected_hours }}</td>
+          <td class="r num">{{ (a.ot_day_hours or 0) if a.ot_day_hours else '—' }}</td>
+          <td class="r num" style="color:{{ 'var(--red)' if short>0 else 'inherit' }}">{{ short if short>0 else '—' }}</td>
+          <td>{% if a.status=='present' %}<span class="badge badge-green">{{ a.status }}</span>
+              {% else %}<span class="badge badge-red">{{ a.status }}</span>{% endif %}</td></tr>
+    {% else %}<tr><td colspan="7" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="{{ lang }}" dir="{{ direction }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ t('app_name') }} · {% block title %}{{ t('app_tagline') }}{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', filename='sgate_logo.png') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+{% set ep = request.endpoint %}
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="logo-tile"><img src="{{ url_for('static', filename='sgate_logo.png') }}" alt="Scientific Gate"></span>
+      <span class="word"><b>{{ t('app_name') }}</b><span>{{ t('app_tagline') }}</span></span>
+    </div>
+    <nav class="nav">
+      <a href="{{ url_for('dashboard') }}" class="{{ 'active' if ep=='dashboard' }}">{{ ic('grid') }}{{ t('nav_dashboard') }}</a>
+      <a href="{{ url_for('employees') }}" class="{{ 'active' if ep in ['employees','employee_form','employee_detail'] }}">{{ ic('users') }}{{ t('nav_employees') }}</a>
+      <a href="{{ url_for('grades') }}" class="{{ 'active' if ep in ['grades','grade_form'] }}">{{ ic('layers') }}{{ t('nav_grades') }}</a>
+      <a href="{{ url_for('departments') }}" class="{{ 'active' if ep=='departments' }}">{{ ic('folder') }}{{ t('nav_departments') }}</a>
+      <div class="sep"></div>
+      <a href="{{ url_for('attendance') }}" class="{{ 'active' if ep in ['attendance','attendance_import'] }}">{{ ic('clock') }}{{ t('nav_attendance') }}</a>
+      <a href="{{ url_for('leave') }}" class="{{ 'active' if ep in ['leave','leave_form'] }}">{{ ic('sun') }}{{ t('nav_leave') }}</a>
+      <a href="{{ url_for('loans') }}" class="{{ 'active' if ep in ['loans','loan_form'] }}">{{ ic('wallet') }}{{ t('nav_loans') }}</a>
+      <a href="{{ url_for('benefits') }}" class="{{ 'active' if ep=='benefits' }}">{{ ic('heart') }}{{ t('nav_benefits') }}</a>
+      <div class="sep"></div>
+      <a href="{{ url_for('payroll_runs') }}" class="{{ 'active' if ep in ['payroll_runs','payroll_detail','payslip','payroll_schedule'] }}">{{ ic('cash') }}{{ t('nav_payroll') }}</a>
+      <a href="{{ url_for('reports') }}" class="{{ 'active' if ep and ep.startswith('report') }}">{{ ic('chart') }}{{ t('nav_reports') }}</a>
+      {% if current_user.has_role('finance_manager','md') %}
+      <a href="{{ url_for('audit_log') }}" class="{{ 'active' if ep=='audit_log' }}">{{ ic('layers') }}{{ t('nav_audit') }}</a>
+      {% endif %}
+      <div class="sep"></div>
+      {% if current_user.role=='admin' %}
+      <a href="{{ url_for('users') }}" class="{{ 'active' if ep=='users' }}">{{ ic('users') }}{{ t('nav_users') }}</a>
+      <a href="{{ url_for('settings_page') }}" class="{{ 'active' if ep=='settings_page' }}">{{ ic('cog') }}{{ t('nav_settings') }}</a>
+      {% endif %}
+    </nav>
+    <div class="side-foot">
+      <a href="{{ url_for('help_page') }}">{{ ic('layers') }} {{ t('nav_help') }}</a>
+      <span>{{ settings.company_name if lang=='en' else (settings.company_name_ar or settings.company_name) }}</span>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="menu-btn">{{ ic('menu') }}</button>
+        <h1>{% block heading %}{% endblock %}</h1>
+      </div>
+      <div class="tools">
+        <a class="lang-toggle" href="{{ url_for('set_lang', code='ar' if lang=='en' else 'en') }}">{{ t('language') }}</a>
+        <span class="who">{{ current_user.name or current_user.email }}</span>
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('logout') }}">{{ t('logout') }}</a>
+      </div>
+    </div>
+    <div class="content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+          <div class="flash {{ cat }}">{{ msg }}</div>
+        {% endfor %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

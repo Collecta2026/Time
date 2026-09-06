@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block heading %}{{ loc(e,'name') }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h2>{{ loc(e,'name') }} <span class="badge {{ 'badge-green' if e.status=='active' else 'badge-grey' }}">{{ t(e.status) }}</span></h2>
+    <div class="sub">{{ e.code }} · {{ loc(e,'job_title') }} · {{ loc(e.department,'name') if e.department else '—' }}</div>
+  </div>
+  <div class="row-actions">
+    <a class="btn btn-ghost" href="{{ url_for('contract', eid=e.id) }}">{{ ic('print') }}{{ t('contract') }}</a>
+    <a class="btn btn-primary" href="{{ url_for('employee_form', eid=e.id) }}">{{ ic('cog') }}{{ t('edit') }}</a>
+  </div>
+</div>
+
+<div class="card"><div class="card-b">
+  <div class="info-grid" style="grid-template-columns:repeat(4,1fr);gap:18px">
+    <div class="c"><div class="l">{{ t('national_id') }}</div><div class="v num">{{ e.national_id or '—' }}</div></div>
+    <div class="c"><div class="l">{{ t('grade') }}</div><div class="v">{{ e.grade.code if e.grade else '—' }}{% if e.spine_point %} · {{ t('spine_point') }} {{ e.spine_point }}{% endif %}</div></div>
+    <div class="c"><div class="l">{{ t('hire_date') }}</div><div class="v num">{{ e.hire_date | d }}</div></div>
+    <div class="c"><div class="l">{{ t('years_service') }}</div><div class="v num">{{ e.years_service }}</div></div>
+    <div class="c"><div class="l">{{ t('basic_salary') }}</div><div class="v num">{{ e.basic_salary | money }}</div></div>
+    <div class="c"><div class="l">{{ t('allowances') }}</div><div class="v num">{{ e.allowances | money }}</div></div>
+    <div class="c"><div class="l">{{ t('total') }}</div><div class="v num">{{ e.total_monthly | money }}</div></div>
+    <div class="c"><div class="l">{{ t('nav_benefits') }}</div><div class="v">{{ loc(e.benefit,'name') if e.benefit else t('none') }}</div></div>
+    <div class="c"><div class="l">{{ t('phone') }}</div><div class="v num">{{ e.phone or '—' }}</div></div>
+    <div class="c"><div class="l">{{ t('bank_name') }}</div><div class="v">{{ e.bank_name or '—' }}</div></div>
+    <div class="c"><div class="l">{{ t('bank_account') }}</div><div class="v num">{{ e.bank_account or '—' }}</div></div>
+    <div class="c"><div class="l">{{ t('contract_type') }}</div><div class="v">{{ t(e.contract_type) }}</div></div>
+  </div>
+</div></div>
+
+<div class="grid" style="grid-template-columns:1fr 1fr;margin-top:20px">
+  <div class="card">
+    <div class="card-h"><h2>{{ t('nav_loans') }}</h2></div>
+    <div class="table-wrap"><table class="data">
+      <thead><tr><th>{{ t('issue_date') }}</th><th class="r">{{ t('principal') }}</th><th class="r">{{ t('outstanding') }}</th><th>{{ t('status') }}</th></tr></thead>
+      <tbody>
+      {% for l in e.loans %}
+        <tr><td class="num">{{ l.issue_date | d }}</td><td class="r num">{{ l.principal | money }}</td>
+            <td class="r num">{{ l.outstanding | money }}</td>
+            <td><span class="badge {{ 'badge-gold' if l.status=='active' else 'badge-grey' }}">{{ t(l.status) }}</span></td></tr>
+      {% else %}<tr><td colspan="4" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><h2>{{ t('nav_leave') }}</h2></div>
+    <div class="table-wrap"><table class="data">
+      <thead><tr><th>{{ t('leave_type') }}</th><th>{{ t('from_date') }}</th><th class="r">{{ t('days') }}</th></tr></thead>
+      <tbody>
+      {% for l in leaves %}
+        <tr><td>{{ t(l.leave_type) }}</td><td class="num">{{ l.start_date | d }}</td><td class="r num">{{ l.days }}</td></tr>
+      {% else %}<tr><td colspan="3" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+{% if headroom %}
+<div class="card" style="margin-top:20px">
+  <div class="card-h"><h2>{{ t('headroom') }}</h2></div>
+  <div class="table-wrap"><table class="data">
+    <thead><tr><th>{{ t('spine_point') }}</th><th class="r">{{ t('monthly_salary') }}</th><th class="r">+{{ settings.currency }}</th></tr></thead>
+    <tbody>
+    {% for p in headroom %}
+      <tr><td class="num">{{ p.point_no }}</td><td class="r num">{{ p.monthly_salary | money }}</td>
+          <td class="r num" style="color:var(--teal)">+{{ (p.monthly_salary - e.total_monthly) | money }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endif %}
+
+<div class="card" style="margin-top:20px">
+  <div class="card-h"><h2>{{ t('payslips') }}</h2></div>
+  <div class="table-wrap"><table class="data">
+    <thead><tr><th>{{ t('period') }}</th><th class="r">{{ t('gross') }}</th><th class="r">{{ t('deductions') }}</th><th class="r">{{ t('net_pay') }}</th><th></th></tr></thead>
+    <tbody>
+    {% for p in payslips %}
+      <tr><td class="num">{{ p.run.period_label }}</td><td class="r num">{{ p.gross | money }}</td>
+          <td class="r num">{{ p.total_deductions | money }}</td><td class="r num">{{ p.net_pay | money }}</td>
+          <td class="r"><a class="btn btn-ghost btn-sm" href="{{ url_for('payslip', pid=p.id) }}">{{ t('payslip') }}</a></td></tr>
+    {% else %}<tr><td colspan="5" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</div>
+
+<div style="margin-top:20px">
+  <form method="post" action="{{ url_for('employee_delete', eid=e.id) }}" data-confirm="{{ t('confirm_delete') }}">
+    <button class="btn btn-danger btn-sm">{{ t('delete') }}</button>
+  </form>
+</div>
+{% endblock %}

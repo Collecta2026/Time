@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('nav_help') }}{% endblock %}
+{% block content %}
+<div class="card" style="max-width:900px"><div class="card-b" style="line-height:1.7">
+
+<h2 style="margin-bottom:6px">Time — user guide</h2>
+<p class="hint" style="margin-bottom:20px">HR &amp; payroll for companies under Egyptian labour law. Switch language any time with the toggle at the top right; Arabic flips the whole screen right-to-left.</p>
+
+<h3 style="color:var(--gold);margin-top:18px">Roles &amp; who does what</h3>
+<p>Access follows a scheme of delegation. <b>HR</b> prepares payroll and manages people, attendance, leave and loans. The <b>Finance Manager</b> approves payroll, sees all finance information, prints the schedules and marks runs paid. The <b>Managing Director</b> gives the joint authorisation (final release). The <b>Administrator</b> manages users and settings. A <b>Viewer</b> can look but not change. The person who prepared a payroll run cannot approve it.</p>
+
+<h3 style="color:var(--gold);margin-top:18px">Setting up (Administrator)</h3>
+<p>Open <b>Settings</b> and enter the company details, the paying bank, and confirm the statutory parameters — social insurance rates, the insurable-wage floor and ceiling, the income-tax exemption, working hours, overtime premiums and the leave policy. These can be changed whenever the law changes; confirm the insurable-wage ceiling every January (it rises 15%). Set the <b>scheme of delegation</b> bands here too: for each band of net payroll, tick whether Finance Manager approval alone is enough or a joint MD release is also required. Then create your people under <b>Users</b> and give each the right role.</p>
+
+<h3 style="color:var(--gold);margin-top:18px">Building the organisation</h3>
+<p><b>Departments</b> and <b>Grades &amp; Spine</b> come first. A grade holds spine points, each carrying a monthly salary, so an employee sits on a point with visible room to grow to the points above. Then add <b>Employees</b>: personal details, department, grade and spine point, start date, contract type, salary and allowances, bank details and medical plan. The employee code should match the worker's fingerprint ID so attendance imports line up.</p>
+
+<h3 style="color:var(--gold);margin-top:18px">Attendance</h3>
+<p>Attendance is imported from your fingerprint system. On the <b>Attendance</b> page, download the CSV template, fill it (employee code, date, and either hours worked or in/out times) and upload it. Overtime and shortfall are worked out per day against the standard hours in Settings.</p>
+
+<h3 style="color:var(--gold);margin-top:18px">Leave, loans and benefits</h3>
+<p>Record <b>Leave</b> by type (annual, sick, casual, maternity, unpaid) with a paid percentage. Issue <b>Loans</b> with a monthly deduction; the balance reduces automatically when payroll is authorised. Set up <b>Medical benefits</b> plans with employer and employee monthly shares and enrol employees on their record.</p>
+
+<h3 style="color:var(--gold);margin-top:18px">Running payroll — the approval flow</h3>
+<p>On <b>Payroll</b>, HR picks the period and runs it; the system computes gross, overtime, social insurance, income tax, loan and absence deductions, and net pay for every active employee. HR then <b>submits for approval</b>. The <b>Finance Manager approves</b>; if the delegation band requires it, the <b>Managing Director authorises</b> for payment (loan balances reduce at this point). The Finance Manager then <b>marks it paid</b>. Any approver can return a run to HR with a reason. Every step is stamped with the name and time and written to the <b>Audit log</b>.</p>
+
+<h3 style="color:var(--gold);margin-top:18px">What Finance receives</h3>
+<p>From an open run, print or export three documents. The <b>Payment schedule</b> lists each employee's net pay with bank and account, the total to disburse, and the statutory remittances. The <b>Insurance remittance schedule</b> is the auditable social-insurance return for the authority (NOSI) — per employee insurable wage and the 11% / 18.75% / 1% split, with the approval trail printed on it. Individual <b>payslips</b> print from each employee's record or the run.</p>
+
+<h3 style="color:var(--gold);margin-top:18px">Reports</h3>
+<p>Under <b>Reports</b>: attendance, sick days, starters &amp; leavers, management statistics, the <b>insurance remittance register</b> (every month's return for the year, each linking to its auditable schedule), the <b>leave-pay provision</b>, and the loan register. Each exports to Excel.</p>
+
+<h3 style="color:var(--gold);margin-top:18px">Leave-pay provision (for Finance)</h3>
+<p>The <b>Leave pay provision</b> report values the accrued-but-untaken statutory annual leave each employee has earned — the liability Finance carries. Choose the year and month to see accrued days, days taken, the balance, and its money value per employee and in total, plus the month's accrual charge. The Finance Manager can <b>post the provision</b> for a month to save a dated snapshot; the movement table then shows the liability month by month for audit.</p>
+
+<h3 style="color:var(--gold);margin-top:18px">Contracts</h3>
+<p>Each employee record prints an <b>Arabic employment contract</b>, populated from their details, as required by Law 14/2025.</p>
+
+<p class="hint" style="margin-top:22px">Figures are implemented as published, but tax and insurance rates move — keep Settings current and have payroll output checked before first live use. The full installation and administration guide is supplied as a separate document with the software.</p>
+
+</div></div>
+{% endblock %}

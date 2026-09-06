@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('insurance_schedule') }} · {{ run.period_label }}{% endblock %}
+{% block content %}
+<div class="print-bar no-print">
+  <a class="btn btn-ghost" href="{{ url_for('report_si', year=run.year) }}">{{ t('back') }}</a>
+  <a class="btn btn-ghost" href="{{ url_for('payroll_insurance', rid=run.id, export=1) }}">{{ ic('download') }}{{ t('export') }}</a>
+  <button class="btn btn-gold" onclick="window.print()">{{ ic('print') }}{{ t('print') }}</button>
+</div>
+
+<div class="doc">
+  <div class="doc-head">
+    <div>
+      <div class="co">{{ settings.company_name if lang=='en' else (settings.company_name_ar or settings.company_name) }}</div>
+      <div style="color:#c7d0df;font-size:13px">{{ t('insurance_schedule') }} — {{ run.period_label }}</div>
+    </div>
+    <div class="meta">
+      <div>{{ t('insurance_no') }}: {{ settings.insurance_no or '—' }}</div>
+      <div><span class="badge {{ 'badge-green' if run.status in ['authorised','paid'] else 'badge-gold' }}">{{ t(run.status) }}</span></div>
+    </div>
+  </div>
+  <div class="doc-body">
+    <table class="data">
+      <thead><tr><th>{{ t('code') }}</th><th>{{ t('name') }}</th><th>{{ t('national_id') }}</th>
+        <th class="r">{{ t('insurable_wage') }}</th><th class="r">{{ t('si_employee') }}</th>
+        <th class="r">{{ t('si_employer') }}</th><th class="r">{{ t('emergency_fund') }}</th>
+        <th class="r">{{ t('total') }}</th></tr></thead>
+      <tbody>
+      {% for p in slips %}
+        <tr><td class="num">{{ p.employee.code }}</td><td>{{ p.employee.name }}</td>
+            <td class="num">{{ p.employee.national_id }}</td>
+            <td class="r num">{{ p.insurable_wage | money }}</td>
+            <td class="r num">{{ p.si_employee | money }}</td>
+            <td class="r num">{{ p.si_employer | money }}</td>
+            <td class="r num">{{ p.emergency_fund | money }}</td>
+            <td class="r num"><b>{{ (p.si_employee + p.si_employer + p.emergency_fund) | money }}</b></td></tr>
+      {% endfor %}
+      </tbody>
+      <tfoot><tr><td colspan="3">{{ t('total') }}</td>
+        <td class="r num">{{ totals.insurable | money }}</td>
+        <td class="r num">{{ totals.employee | money }}</td>
+        <td class="r num">{{ totals.employer | money }}</td>
+        <td class="r num">{{ totals.fund | money }}</td>
+        <td class="r num">{{ totals.total | money }}</td></tr></tfoot>
+    </table>
+
+    <div class="net-band" style="margin-top:22px">
+      <span class="lbl">{{ t('remittance_total') }} · {{ settings.currency }}</span>
+      <span class="amt num">{{ totals.total | money }}</span>
+    </div>
+
+    <div class="sign" style="display:flex;justify-content:space-between;margin-top:50px">
+      <div>{{ t('prepared_by') }}: {{ run.prepared_by or '____________' }}<br><br>____________________</div>
+      <div>{{ t('approved_by') }}: {{ run.approved_by or '____________' }}<br><br>____________________</div>
+      <div>{{ t('authorised_by') }}: {{ run.authorised_by or '____________' }}<br><br>____________________</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('nav_reports') }}{% endblock %}
+{% block content %}
+{% set items = [
+  ('report_attendance', 'rep_attendance', 'clock'),
+  ('report_sick', 'rep_sick', 'heart'),
+  ('report_starters_leavers', 'rep_starters_leavers', 'users'),
+  ('report_stats', 'rep_stats', 'chart'),
+  ('report_si', 'rep_si_register', 'cash'),
+  ('report_leave_provision', 'rep_leave_provision', 'sun'),
+  ('report_loans', 'rep_loans', 'wallet'),
+] %}
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+  {% for ep, key, icon in items %}
+  <a class="card" href="{{ url_for(ep) }}" style="display:block">
+    <div class="card-b" style="display:flex;align-items:center;gap:14px">
+      <span style="color:var(--gold);display:flex">{{ ic(icon) }}</span>
+      <div><b>{{ t(key) }}</b></div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

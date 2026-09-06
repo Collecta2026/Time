@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('rep_attendance') }}{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <form method="get" style="display:flex;gap:10px;align-items:center">
+    <input type="number" name="year" value="{{ y }}" style="width:110px">
+    <select name="month" onchange="this.form.submit()">
+      {% for i in range(1,13) %}<option value="{{ i }}" {{ 'selected' if i==m }}>{{ '%02d'|format(i) }}</option>{% endfor %}
+    </select>
+    <button class="btn btn-ghost btn-sm">{{ t('search') }}</button>
+  </form>
+  <span class="spacer"></span>
+  <a class="btn btn-ghost" href="{{ url_for('report_attendance', year=y, month=m, export=1) }}">{{ ic('download') }}{{ t('export') }}</a>
+</div>
+<div class="card"><div class="table-wrap"><table class="data">
+  <thead><tr><th>{{ t('code') }}</th><th>{{ t('name') }}</th>
+    <th class="r">{{ t('hours_worked') }}</th><th class="r">{{ t('expected_hours') }}</th>
+    <th class="r">{{ t('shortfall') }}</th><th class="r">{{ t('days') }}</th></tr></thead>
+  <tbody>
+  {% for code, name, worked, expected, short, days in data %}
+    <tr><td class="num">{{ code }}</td><td>{{ name }}</td>
+        <td class="r num">{{ worked }}</td><td class="r num">{{ expected }}</td>
+        <td class="r num" style="color:{{ 'var(--red)' if short>0 else 'inherit' }}">{{ short }}</td>
+        <td class="r num">{{ days }}</td></tr>
+  {% else %}<tr><td colspan="6" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+  </tbody>
+</table></div></div>
+{% endblock %}

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="{{ lang }}" dir="{{ direction }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ t('app_name') }} · {{ t('signin') }}</title>
+  <link rel="icon" href="{{ url_for('static', filename='sgate_logo.png') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="brand">
+      <img src="{{ url_for('static', filename='sgate_logo.png') }}" alt="Scientific Gate" style="height:74px;width:auto">
+    </div>
+    <h2>{{ t('app_name') }}</h2>
+    <p class="sub">{{ t('app_tagline') }} · Egypt</p>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}<div class="flash {{ cat }}">{{ msg }}</div>{% endfor %}
+    {% endwith %}
+    <form method="post">
+      <div class="field">
+        <label>{{ t('email') }}</label>
+        <input type="email" name="email" required autofocus>
+      </div>
+      <div class="field">
+        <label>{{ t('password') }}</label>
+        <input type="password" name="password" required>
+      </div>
+      <button class="btn btn-gold">{{ t('signin') }}</button>
+    </form>
+    <div class="login-foot">
+      <a href="{{ url_for('set_lang', code='ar' if lang=='en' else 'en') }}">{{ t('language') }}</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

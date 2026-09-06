@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('nav_users') }}{% endblock %}
+{% block content %}
+{% set roles = ['admin','hr','finance_manager','md','viewer'] %}
+<div class="grid" style="grid-template-columns:1.5fr 1fr">
+  <div class="card">
+    <div class="card-h"><h2>{{ t('nav_users') }}</h2></div>
+    <div class="table-wrap"><table class="data">
+      <thead><tr><th>{{ t('name') }}</th><th>{{ t('email') }}</th><th>{{ t('role') }}</th><th>{{ t('status') }}</th><th></th></tr></thead>
+      <tbody>
+      {% for u in rows %}
+        <tr><td>{{ u.name }}</td><td class="num">{{ u.email }}</td>
+            <td><span class="badge badge-gold">{{ t('role_' ~ u.role) }}</span></td>
+            <td>{% if u.active %}<span class="badge badge-green">{{ t('active') }}</span>{% else %}<span class="badge badge-grey">—</span>{% endif %}</td>
+            <td class="r">
+              {% if u.id != current_user.id %}
+              <form method="post" action="{{ url_for('user_delete', uid=u.id) }}" data-confirm="{{ t('confirm_delete') }}" style="display:inline">
+                <button class="btn btn-danger btn-sm">{{ t('delete') }}</button></form>
+              {% endif %}
+            </td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><h2>{{ t('new_user') }}</h2></div>
+    <div class="card-b">
+      <form method="post">
+        <div class="field" style="margin-bottom:10px"><label>{{ t('name') }}</label><input name="name" required></div>
+        <div class="field" style="margin-bottom:10px"><label>{{ t('email') }}</label><input type="email" name="email" required></div>
+        <div class="field" style="margin-bottom:10px"><label>{{ t('role') }}</label>
+          <select name="role">{% for r in roles %}<option value="{{ r }}">{{ t('role_' ~ r) }}</option>{% endfor %}</select></div>
+        <div class="field" style="margin-bottom:10px"><label>{{ t('password') }}</label><input type="password" name="password" required></div>
+        <label style="display:flex;gap:8px;align-items:center;margin-bottom:16px"><input type="checkbox" name="active" checked style="width:auto"> {{ t('active') }}</label>
+        <button class="btn btn-gold">{{ ic('plus') }}{{ t('save') }}</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

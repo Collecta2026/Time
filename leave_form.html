@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('record_leave') }}{% endblock %}
+{% block content %}
+<form method="post" class="card" style="max-width:640px"><div class="card-b">
+  <div class="fields">
+    <div class="field full"><label>{{ t('name') }}</label>
+      <select name="employee_id" required>
+        {% for e in employees %}<option value="{{ e.id }}">{{ e.code }} · {{ loc(e,'name') }}</option>{% endfor %}
+      </select></div>
+    <div class="field"><label>{{ t('leave_type') }}</label>
+      <select name="leave_type">
+        <option value="annual">{{ t('annual') }}</option>
+        <option value="sick">{{ t('sick') }}</option>
+        <option value="casual">{{ t('casual') }}</option>
+        <option value="maternity">{{ t('maternity') }}</option>
+        <option value="unpaid">{{ t('unpaid') }}</option>
+      </select></div>
+    <div class="field"><label>{{ t('paid_pct') }}</label><input type="number" name="paid_pct" value="100"></div>
+    <div class="field"><label>{{ t('from_date') }}</label><input type="date" name="start_date" required></div>
+    <div class="field"><label>{{ t('to_date') }}</label><input type="date" name="end_date" required></div>
+    <div class="field full"><label>{{ t('reason') }}</label><input name="note"></div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-gold">{{ t('save') }}</button>
+    <a class="btn btn-ghost" href="{{ url_for('leave') }}">{{ t('cancel') }}</a>
+  </div>
+</div></form>
+{% endblock %}

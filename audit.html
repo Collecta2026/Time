@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('nav_audit') }}{% endblock %}
+{% block content %}
+<div class="card"><div class="table-wrap"><table class="data">
+  <thead><tr><th>{{ t('when') }}</th><th>{{ t('actor') }}</th><th>{{ t('action') }}</th><th>{{ t('period') }}</th><th>{{ t('reason') }}</th></tr></thead>
+  <tbody>
+  {% for a in rows %}
+    <tr><td class="num">{{ a.ts.strftime('%Y-%m-%d %H:%M') if a.ts }}</td>
+        <td>{{ a.actor }}</td><td><span class="badge badge-grey">{{ a.action }}</span></td>
+        <td class="num">{{ a.target }}</td><td class="hint">{{ a.detail }}</td></tr>
+  {% else %}<tr><td colspan="5" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+  </tbody>
+</table></div></div>
+{% endblock %}

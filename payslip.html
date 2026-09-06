@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('payslip') }}{% endblock %}
+{% block content %}
+<div class="print-bar no-print">
+  <a class="btn btn-ghost" href="{{ url_for('payroll_detail', rid=run.id) }}">{{ t('back') }}</a>
+  <button class="btn btn-gold" onclick="window.print()">{{ ic('print') }}{{ t('print') }}</button>
+</div>
+
+<div class="doc">
+  <div class="doc-head">
+    <div>
+      <div class="co">{{ settings.company_name if lang=='en' else (settings.company_name_ar or settings.company_name) }}</div>
+      <div style="color:#c7d0df;font-size:13px">{{ settings.address }}</div>
+    </div>
+    <div class="meta">
+      <div style="font-size:18px;font-weight:800;color:#fff">{{ t('payslip') }}</div>
+      <div>{{ t('period') }}: {{ run.period_label }}</div>
+    </div>
+  </div>
+  <div class="doc-body">
+    <div class="info-grid">
+      <div class="c"><div class="l">{{ t('name') }}</div><div class="v">{{ loc(p.employee,'name') }}</div></div>
+      <div class="c"><div class="l">{{ t('code') }}</div><div class="v num">{{ p.employee.code }}</div></div>
+      <div class="c"><div class="l">{{ t('job_title') }}</div><div class="v">{{ loc(p.employee,'job_title') }}</div></div>
+      <div class="c"><div class="l">{{ t('national_id') }}</div><div class="v num">{{ p.employee.national_id }}</div></div>
+    </div>
+
+    <div class="pay-grid">
+      <div class="pay-col">
+        <h3>{{ t('earnings') }}</h3>
+        <div class="pay-line"><span>{{ t('basic_salary') }}</span><span class="num">{{ p.basic | money }}</span></div>
+        <div class="pay-line"><span>{{ t('allowances') }}</span><span class="num">{{ p.allowances | money }}</span></div>
+        <div class="pay-line"><span>{{ t('overtime') }}</span><span class="num">{{ p.overtime | money }}</span></div>
+        <div class="pay-line tot"><span>{{ t('gross') }}</span><span class="num">{{ p.gross | money }}</span></div>
+      </div>
+      <div class="pay-col">
+        <h3>{{ t('deductions') }}</h3>
+        <div class="pay-line"><span>{{ t('si_employee') }}</span><span class="num">{{ p.si_employee | money }}</span></div>
+        <div class="pay-line"><span>{{ t('income_tax') }}</span><span class="num">{{ p.income_tax | money }}</span></div>
+        <div class="pay-line"><span>{{ t('shortfall') }}</span><span class="num">{{ p.absence_deduction | money }}</span></div>
+        <div class="pay-line"><span>{{ t('nav_loans') }}</span><span class="num">{{ p.loan_deduction | money }}</span></div>
+        <div class="pay-line"><span>{{ t('nav_benefits') }}</span><span class="num">{{ p.other_deductions | money }}</span></div>
+        <div class="pay-line tot"><span>{{ t('deductions') }}</span><span class="num">{{ p.total_deductions | money }}</span></div>
+      </div>
+    </div>
+
+    <div class="net-band">
+      <span class="lbl">{{ t('net_pay') }} · {{ settings.currency }}</span>
+      <span class="amt num">{{ p.net_pay | money }}</span>
+    </div>
+
+    <div class="pay-grid" style="margin-top:24px">
+      <div class="pay-col">
+        <h3>{{ t('employer_contributions') }}</h3>
+        <div class="pay-line"><span>{{ t('si_employer') }}</span><span class="num">{{ p.si_employer | money }}</span></div>
+        <div class="pay-line"><span>{{ t('emergency_fund') }}</span><span class="num">{{ p.emergency_fund | money }}</span></div>
+        <div class="pay-line tot"><span>{{ t('employer_cost') }}</span><span class="num">{{ p.employer_cost | money }}</span></div>
+      </div>
+      <div class="pay-col">
+        <h3>{{ t('nav_attendance') }}</h3>
+        <div class="pay-line"><span>{{ t('hours_worked') }}</span><span class="num">{{ p.hours_worked }}</span></div>
+        <div class="pay-line"><span>{{ t('expected_hours') }}</span><span class="num">{{ p.hours_expected }}</span></div>
+        <div class="pay-line"><span>{{ t('insurable_wage') }}</span><span class="num">{{ p.insurable_wage | money }}</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

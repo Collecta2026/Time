@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('rep_loans') }}{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <span class="spacer"></span>
+  <a class="btn btn-ghost" href="{{ url_for('report_loans', export=1) }}">{{ ic('download') }}{{ t('export') }}</a>
+</div>
+<div class="card"><div class="table-wrap"><table class="data">
+  <thead><tr><th>{{ t('code') }}</th><th>{{ t('name') }}</th><th>{{ t('issue_date') }}</th>
+    <th class="r">{{ t('principal') }}</th><th class="r">{{ t('monthly_deduction') }}</th>
+    <th class="r">{{ t('outstanding') }}</th><th>{{ t('status') }}</th></tr></thead>
+  <tbody>
+  {% for l in rows %}
+    <tr><td class="num">{{ l.employee.code }}</td><td>{{ loc(l.employee,'name') }}</td>
+        <td class="num">{{ l.issue_date | d }}</td>
+        <td class="r num">{{ l.principal | money }}</td>
+        <td class="r num">{{ l.monthly_deduction | money }}</td>
+        <td class="r num">{{ l.outstanding | money }}</td>
+        <td><span class="badge {{ 'badge-gold' if l.status=='active' else 'badge-grey' }}">{{ t(l.status) }}</span></td></tr>
+  {% else %}<tr><td colspan="7" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+  </tbody>
+</table></div></div>
+{% endblock %}
