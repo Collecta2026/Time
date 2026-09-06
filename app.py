@@ -5,7 +5,7 @@ from datetime import datetime, date, timedelta
 from calendar import monthrange
 
 from flask import (Flask, render_template, request, redirect, url_for, flash,
-                   session, send_file, abort, Response)
+                   session, send_file, send_from_directory, abort, Response)
 from flask_login import (LoginManager, login_user, logout_user,
                          login_required, current_user)
 from jinja2 import ChoiceLoader, FileSystemLoader
@@ -21,7 +21,7 @@ from i18n import translate, STRINGS
 # --------------------------------------------------------------------------- #
 #  App / config
 # --------------------------------------------------------------------------- #
-app = Flask(__name__)
+app = Flask(__name__, static_folder=None)
 app.secret_key = os.environ.get("SECRET_KEY", "time-dev-secret-change-me")
 
 db_url = os.environ.get("DATABASE_URL", "sqlite:///time.db")
@@ -33,6 +33,15 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Load templates from ./templates OR repo root (survives flattened uploads)
 app.jinja_loader = ChoiceLoader([FileSystemLoader("templates"), FileSystemLoader(".")])
+
+
+@app.route("/static/<path:filename>")
+def static(filename):
+    """Serve static assets from ./static OR the repo root (survives flat uploads)."""
+    for base in ("static", "."):
+        if os.path.isfile(os.path.join(base, filename)):
+            return send_from_directory(base, filename)
+    abort(404)
 
 db.init_app(app)
 login_manager = LoginManager(app)
