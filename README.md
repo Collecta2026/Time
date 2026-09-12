@@ -1,125 +1,92 @@
-# Time — HR & Payroll (Egypt)
+# Scientific Gate — Cash Flow Budgeting System
 
-A bilingual (English / العربية) HR and payroll system built for companies operating
-under Egyptian labour law. Same stack as your Collecta build: a single Flask app,
-SQLite locally and Postgres (Neon) in production, deployed on Render.
+Release 1. A bilingual (English / العربية) weekly cash flow forecasting and
+budgeting system for Scientific Gate Co., built on the same architecture as
+Collecta: Flask + SQLAlchemy, Neon/Postgres in production, a role and
+capability matrix enforced server-side, an approvals queue and a full audit
+log.
 
-## What it does
-
-- **Employees** — full records, start/end dates, contract type, bank details, medical enrolment.
-- **Grades & spine points** — a grading scale where each spine point carries a salary, so every
-  employee sits on a point with visible room to grow to the points above.
-- **Attendance** — imported from your external fingerprint system by CSV. Overtime and
-  shortfall are worked out per day against the standard working hours.
-- **Leave** — annual, sick, casual, maternity, unpaid, with paid percentage.
-- **Loans** — principal, monthly deduction and outstanding balance; deductions are applied
-  automatically when a payroll run is finalised.
-- **Medical benefits** — plans with employer and employee monthly shares.
-- **Payroll** — full monthly payroll: gross, overtime, **social insurance**, **income tax**,
-  loan and absence deductions, net pay, and printable **payslips** — run through a
-  **scheme-of-delegation approval workflow** (below).
-- **Payment schedule** — a printable schedule for Finance showing each employee's net pay with
-  bank and account, the total to disburse, and the statutory remittances to the Tax Authority
-  and NOSI. Exports to Excel as a bank payment file.
-- **Contracts** — a printable **Arabic** employment contract (a legal requirement under
-  Law 14/2025), populated from the employee record.
-- **Reports** — attendance, sick days, starters & leavers, management statistics, the **insurance
-  remittance register** (every month's NOSI return for the year, each linking to its auditable
-  schedule), the **leave-pay provision** (tracked monthly), and the loan register. Each exports to
-  Excel. An in-app **Help** guide is built in, and the full illustrated manual is supplied as
-  `docs/Time_Installation_and_User_Manual.docx` (step-by-step install is also in `INSTALL.md`).
-
-## Roles and the payroll approval workflow
-
-Payroll follows the same maker-checker scheme of delegation as the cash-cycle system, with an
-append-only **audit log** of every action:
-
-```
-  HR prepares  ─►  Finance Manager approves  ─►  Managing Director authorises  ─►  paid
-   (draft →          (prepared → approved,          (approved → authorised,         (marked
-    prepared)         segregation of duties          joint release; loan             paid by
-                      enforced)                      balances reduced here)          Finance)
-```
-
-Roles (set per user under **Users**, admin only):
-
-- **admin** — full control, user administration and settings.
-- **hr** — prepares payroll and manages people, attendance, leave and loans.
-- **finance_manager** — approves payroll, sees all finance information, prints the payment
-  schedule, marks runs paid, and can view the audit log.
-- **md** — the joint authorisation (final release) of payroll for payment.
-- **viewer** — read-only.
-
-The **scheme of delegation is data**, not code: in Settings you set net-total bands and, for
-each band, whether Finance Manager approval alone is enough or a joint MD release is also
-required. The default band requires both on every payroll. Segregation of duties is enforced —
-the person who prepared a run cannot approve it.
-
-When SEED_DEMO is on, demo logins are created for each role
-(`hr@time.eg`, `finance@time.eg`, `md@time.eg`, all `Time2026`) so the workflow is
-demonstrable out of the box.
-
-## The statutory engine
-
-All rates live in **Settings** so an administrator keeps the system compliant without a code
-change. The figures shipped as defaults reflect the position for 2026:
-
-- **Social insurance (Law 148/2019):** employee 11%, employer 18.75%, emergency fund 1%,
-  on the insurable wage between the floor (EGP 2,700) and ceiling (EGP 16,700). *Both limits
-  rise 15% every January — update them in Settings each year.*
-- **Income tax (Law 91/2005, amended by Law 7/2024):** seven progressive bands 0%–27.5% with
-  the six-column bracket-integration table, the EGP 20,000 annual salary exemption, and the
-  employee's social insurance deducted before tax.
-- **Working time & overtime (Law 14/2025):** 8 hours/day, 48/week; overtime 35% day / 70%
-  night or rest-day.
-
-The calculations are in `payroll.py` and are independently unit-testable.
-
-## Run locally
+## Running it locally
 
 ```bash
 pip install -r requirements.txt
-python app.py           # http://localhost:5000
+python run_app.py            # http://127.0.0.1:5000
 ```
 
-A demo company (Scientific Gate Co.) with departments, grades, twelve employees, loans and a
-month of attendance is seeded on first run. Sign in with **admin@time.eg / Time2026**.
+The first page is a setup wizard: it creates the administrator, names the
+organisation, sets the default language and can load a worked example so the
+forecast is populated from the start.
 
-## Deploy — GitHub → Render → Neon
+With no `DATABASE_URL` set it uses a local SQLite file, so it runs on a laptop
+with nothing else installed. Set `DATABASE_URL` to a Neon connection string for
+the hosted deployment (see `.env.example`).
 
-1. **Neon** — create a project in the **London** region, copy the connection string
-   (the `postgresql://...` pooled URL).
-2. **GitHub** — push this folder to a new repository.
-3. **Render** — New → **Blueprint**, point it at the repo. `render.yaml` is picked up
-   automatically. When prompted, set:
-   - `DATABASE_URL` → your Neon connection string
-   - `ADMIN_EMAIL` and `ADMIN_PASSWORD` → your own admin login
-   - `SEED_DEMO` → `true` for the first deploy if you want the demo data, then change it back
-     to `false` and redeploy.
-   `SECRET_KEY` is generated for you.
-4. Tables are created automatically on first boot and the admin user is made from your env vars.
-5. Add your custom domain under the Render service's **Settings → Custom Domains**.
+## What is in Release 1
 
-## Attendance import format
+**Ten independently editable tables**, each with its own page, its own fields,
+its own filters and its own place in the scheme of delegation:
 
-A CSV with a header row. Either give hours directly, or in/out times and the app computes them:
+| Cash in | Cash out |
+|---|---|
+| Customer collections (instalments, down payments, advances, invoice settlements, retention releases — with customer number, contract and instalment number, and a weekly planner view) | Bank loan instalments |
+| Ad hoc cash inflows | Supplier repayment instalments |
+| One-off items (in or out) | Cheques payable (issue date, payable date, payee, cheque state) |
+| | Customer refunds |
+| | Petty cash replenishments (by employee) |
+| | Fixed weekly costs |
+| | Fixed monthly costs |
 
+**Bank and cash accounts** in EGP and USD, each with a balance, an as-at date
+and an overdraft limit, and a switch to include or exclude it from the forecast.
+
+**Opening balances** roll forward automatically from the previous week's
+closing balance, and any week can be pinned to an actual bank figure — the
+override then rolls on from there.
+
+**Dashboard** — the next six weeks (configurable) per currency with the EGP
+equivalent, the lowest forecast balance, and shortage alerts both for a
+negative balance and for falling below a set minimum buffer.
+
+**Scheme of delegation** — eight roles, five actions per table (view, enter,
+edit, delete, review & approve) plus thirteen core capabilities, all editable
+in the app. Entries move draft → submitted → approved; only approved entries
+count in the forecast unless the setting says otherwise, and nobody may
+approve an entry they created themselves.
+
+**Analysis** — revenue by type, cost elements as a percentage of total revenue
+and of total cost, over any window of weeks.
+
+**Rolling trend forecast** — takes the previous six completed weeks (configurable),
+measures each revenue type and cost category week by week, and rolls it forward
+by least-squares trend or flat average. It shows the weekly average, the trend
+per week, the projection for the coming weeks, what is already booked in the
+forward forecast, and the variance between the two — plus a projected cash
+position running alongside the booked one. Recurring costs generate their own
+historical occurrences, so a fixed weekly wage is measured even though no past
+entry exists for it.
+
+**Working week** — Sunday to Thursday by default, with Friday and Saturday
+non-working and items on those days moving to the next working day. A
+Saturday-to-Thursday preset (Friday off only) is available in settings if
+Saturday is worked.
+
+## Accuracy
+
+The engine is covered by 54 tests in `tests/`, each asserting figures computed
+independently of the code under test:
+
+```bash
+python -m pytest -q
 ```
-employee_code,date,hours_worked,time_in,time_out
-1001,2026-01-04,8,,
-1002,2026-01-04,,08:30,17:00
-```
 
-`employee_code` must match the code on the employee record (set this to the worker's
-fingerprint ID). Download a ready template from the Attendance page.
+The design decisions that protect accuracy are documented at the top of
+`services.py`: weeks tile the calendar exactly, recurrences are generated as
+nominal dates and only then shifted and placed, all money is `Decimal` with a
+single rounding point, and the two currencies never mix.
 
-## A note on compliance and configuration
+## Still to come
 
-Every key parameter is set in **Settings** and can be changed at setup and at any time
-afterwards — the insurance rates, floor and ceiling, the tax exemption, working hours and
-overtime premiums, leave policy, the paying-bank details and the scheme-of-delegation bands.
-This is how you keep the system current: confirm the insurable-wage ceiling each January (it
-rises 15%), and adjust rates whenever the law changes, without a code change.
-
-Time implements the rules as published, but tax and insurance figures move. Treat the seeded
-defaults as a starting point and have payroll output checked before first live use.
+* **Release 2** — CSV / Excel / PDF exports on every table and report, printable
+  forecast and analysis packs, email alerts on forecast shortages.
+* **Release 3** — Render / AWS Pro deployment pack, subdomain and SSL setup,
+  operating manual and user training guide.

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="{{ lang() }}" dir="{{ direction() }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ t('app_name') }}{% endblock %} — {{ brand.org }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">{{ brand.org }}<small>{{ t('app_name') }}</small></div>
+  <div class="spacer"></div>
+  {% if current_user.is_authenticated %}
+    <span class="chip">{{ t('fx_rate') }} {{ fx | money }}</span>
+    <span class="chip">{{ current_user.display }} · {{ ROLE_LABEL.get(current_user.role, current_user.role) }}</span>
+  {% endif %}
+  {% for code, native, _en in LANGS %}
+    {% if code != lang() %}<a href="{{ url_for('set_lang', code=code) }}">{{ native }}</a>{% endif %}
+  {% endfor %}
+  {% if current_user.is_authenticated %}<a href="{{ url_for('logout') }}">{{ t('logout') }}</a>{% endif %}
+</div>
+
+{% if current_user.is_authenticated %}
+<nav class="main">
+  <a href="{{ url_for('dashboard') }}" class="{{ 'on' if active == 'dashboard' }}">{{ t('dashboard') }}</a>
+  {% if can('forecast') %}<a href="{{ url_for('forecast') }}" class="{{ 'on' if active == 'forecast' }}">{{ t('forecast') }}</a>{% endif %}
+
+  {% if my_streams %}
+  <div class="dd">
+    <span>{{ t('tables') }} ▾</span>
+    <div class="dd-menu">
+      <div class="hdr">{{ t('inflows') }}</div>
+      {% for k in INFLOW_STREAMS %}{% if can_s(k, 'view') %}
+        <a href="{{ url_for('table_list', key=k) }}">{{ stream_label(k) }}</a>
+      {% endif %}{% endfor %}
+      <div class="hdr">{{ t('outflows') }}</div>
+      {% for k in OUTFLOW_STREAMS %}{% if can_s(k, 'view') and k != 'one_off' %}
+        <a href="{{ url_for('table_list', key=k) }}">{{ stream_label(k) }}</a>
+      {% endif %}{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if can('banks_view') %}<a href="{{ url_for('banks') }}" class="{{ 'on' if active == 'banks' }}">{{ t('banks') }}</a>{% endif %}
+  {% if can('forecast') %}<a href="{{ url_for('opening') }}" class="{{ 'on' if active == 'opening' }}">{{ t('opening_balances') }}</a>{% endif %}
+  {% if can('analysis') %}<a href="{{ url_for('analysis') }}" class="{{ 'on' if active == 'analysis' }}">{{ t('analysis') }}</a>{% endif %}
+  {% if can('trend') %}<a href="{{ url_for('trend') }}" class="{{ 'on' if active == 'trend' }}">{{ t('trend') }}</a>{% endif %}
+  {% if can('approvals') %}
+    <a href="{{ url_for('approvals') }}" class="{{ 'on' if active == 'approvals' }}">
+      {{ t('approvals') }}{% if pending_approvals %} <span class="badge b-submitted">{{ pending_approvals }}</span>{% endif %}
+    </a>
+  {% endif %}
+
+  {% if can('access_control') or can('users_admin') or can('settings') or can('audit_log') or can('reference_data') %}
+  <div class="dd">
+    <span>⚙ ▾</span>
+    <div class="dd-menu">
+      {% if can('access_control') %}<a href="{{ url_for('delegation') }}">{{ t('delegation') }}</a>{% endif %}
+      {% if can('users_admin') %}<a href="{{ url_for('users') }}">{{ t('users') }}</a>{% endif %}
+      {% if can('reference_data') %}<a href="{{ url_for('reference') }}">{{ t('reference') }}</a>{% endif %}
+      {% if can('settings') %}<a href="{{ url_for('settings') }}">{{ t('settings') }}</a>{% endif %}
+      {% if can('audit_log') %}<a href="{{ url_for('audit_view') }}">{{ t('audit') }}</a>{% endif %}
+    </div>
+  </div>
+  {% endif %}
+</nav>
+{% endif %}
+
+<main>
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, m in msgs %}<div class="flash {{ cat }}">{{ m }}</div>{% endfor %}
+  {% endwith %}
+  {% block body %}{% endblock %}
+</main>
+
+<footer>{{ brand.product }} v{{ app_version }} · {{ brand.org }}</footer>
+</body>
+</html>

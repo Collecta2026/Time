@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}{{ t('delegation') }}{% endblock %}
+{% block body %}
+<h1>{{ t('delegation') }}</h1>
+<p class="sub">Tick what each role may do. The administrator always holds every capability. Nobody can approve an entry they created themselves, whatever this matrix says.</p>
+
+<form method="post">
+<div class="card">
+  <h2>{{ t('approvals') }}</h2>
+  <p class="hint">Roles that may decide items in the approvals queue:</p>
+  <div class="row-actions">
+    {% for rk, en, ar in ROLES %}
+      <label style="display:inline-flex;gap:5px;align-items:center;margin-inline-end:14px">
+        <input type="checkbox" name="approver_roles" value="{{ rk }}" {{ 'checked' if rk in approver_roles }} style="width:auto">
+        {{ ar if lang()=='ar' else en }}</label>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card">
+  <h2>Core capabilities</h2>
+  <div class="scroll">
+  <table class="matrix">
+    <thead><tr><th class="rowh">Capability</th>
+      {% for rk, en, ar in ROLES %}<th>{{ ar if lang()=='ar' else en }}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for ck, cen, car in caps %}
+      <tr><td class="rowh">{{ car if lang()=='ar' else cen }}</td>
+      {% for rk, en, ar in ROLES %}
+        <td><input type="checkbox" name="p_{{ rk }}_{{ ck }}" {{ 'checked' if matrix[rk][ck] }} {{ 'disabled' if rk == 'admin' }}></td>
+      {% endfor %}</tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+
+{% for sk in STREAM_ORDER %}
+<div class="card">
+  <h2>{{ stream_label(sk) }}</h2>
+  <div class="scroll">
+  <table class="matrix">
+    <thead><tr><th class="rowh">{{ t('actions') }}</th>
+      {% for rk, en, ar in ROLES %}<th>{{ ar if lang()=='ar' else en }}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for ak, aen, aar in ACTIONS %}
+      <tr><td class="rowh">{{ aar if lang()=='ar' else aen }}</td>
+      {% for rk, en, ar in ROLES %}
+        {% set cap = stream_cap(sk, ak) %}
+        <td><input type="checkbox" name="p_{{ rk }}_{{ cap }}" {{ 'checked' if matrix[rk][cap] }} {{ 'disabled' if rk == 'admin' }}></td>
+      {% endfor %}</tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% endfor %}
+
+<div class="row-actions">
+  <button class="btn">{{ t('save') }}</button>
+</div>
+</form>
+
+<form method="post" action="{{ url_for('delegation_reset') }}" style="margin-top:10px"
+      onsubmit="return confirm('Reset the whole matrix to the shipped default?')">
+  <button class="btn sec">Reset to default scheme</button>
+</form>
+{% endblock %}

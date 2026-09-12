@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}{{ t('users') }}{% endblock %}
+{% block body %}
+<h1>{{ t('users') }}</h1>
+<div class="card"><div class="scroll">
+<table>
+  <thead><tr><th>{{ t('username') }}</th><th>Name</th><th>Email</th><th>Role</th><th>{{ t('language') }}</th><th>Active</th><th>{{ t('actions') }}</th></tr></thead>
+  <tbody>
+  {% for u in rows %}
+  <tr><form method="post"><input type="hidden" name="action" value="update"><input type="hidden" name="id" value="{{ u.id }}">
+    <td>{{ u.username }}</td>
+    <td><input type="text" name="full_name" value="{{ u.full_name or '' }}"></td>
+    <td><input type="text" name="email" value="{{ u.email or '' }}"></td>
+    <td><select name="role">{% for rk, en, ar in ROLES %}<option value="{{ rk }}" {{ 'selected' if u.role == rk }}>{{ ar if lang()=='ar' else en }}</option>{% endfor %}</select></td>
+    <td class="small">{{ u.lang or 'en' }}</td>
+    <td class="center"><input type="checkbox" name="active" value="1" {{ 'checked' if u.active }}></td>
+    <td><button class="btn sm">{{ t('save') }}</button></td>
+  </form></tr>
+  <tr><td colspan="7" style="padding:0 9px 8px">
+    <form method="post" style="display:flex;gap:6px;align-items:center">
+      <input type="hidden" name="action" value="reset"><input type="hidden" name="id" value="{{ u.id }}">
+      <span class="small muted">Reset password:</span>
+      <input type="password" name="password" placeholder="new password" style="max-width:220px">
+      <button class="btn sm sec">{{ t('save') }}</button>
+    </form>
+  </td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div></div>
+
+<div class="card">
+  <h2>{{ t('add') }}</h2>
+  <form method="post"><input type="hidden" name="action" value="new">
+  <div class="grid g3">
+    <div class="field"><label>{{ t('username') }} *</label><input type="text" name="username" required></div>
+    <div class="field"><label>Full name</label><input type="text" name="full_name"></div>
+    <div class="field"><label>Email</label><input type="text" name="email"></div>
+    <div class="field"><label>Role</label><select name="role">{% for rk, en, ar in ROLES %}<option value="{{ rk }}">{{ ar if lang()=='ar' else en }}</option>{% endfor %}</select></div>
+    <div class="field"><label>{{ t('language') }}</label><select name="lang"><option value="en">English</option><option value="ar">العربية</option></select></div>
+    <div class="field"><label>{{ t('password') }} *</label><input type="password" name="password" required></div>
+  </div>
+  <button class="btn">{{ t('add') }}</button></form>
+</div>
+{% endblock %}

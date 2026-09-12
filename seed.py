@@ -1,133 +1,195 @@
-"""Demo data so a fresh install is explorable. Skip in production: SEED_DEMO=false."""
+"""First-run initialisation: administrator, settings, reference data.
+
+`demo=True` additionally loads a small worked example so the client can
+see the forecast populated before entering their own figures.
+"""
 from datetime import date, timedelta
-import random
-from models import (CompanySettings, Department, Grade, SpinePoint, Employee,
-                    BenefitPlan, Loan, Attendance, Leave, User)
+from decimal import Decimal
+
+from models import (db, User, RevenueType, CostCategory, BankAccount,
+                    set_setting, ST_APPROVED, ST_SUBMITTED)
+import permissions as perms
+import services as svc
+
+REVENUE_TYPES = [
+    ("EQUIP", "Equipment sales", "مبيعات أجهزة", 10),
+    ("PARTS", "Spare parts & accessories", "قطع غيار وملحقات", 20),
+    ("SERVICE", "Service & maintenance contracts", "عقود الصيانة", 30),
+    ("INSTALL", "Installation & commissioning", "التركيب والتشغيل", 40),
+    ("CONSUM", "Consumables", "مستلزمات", 50),
+    ("TENDER", "Tender & project income", "إيرادات المناقصات والمشروعات", 60),
+    ("OTHER", "Other income", "إيرادات أخرى", 90),
+]
+
+COST_CATEGORIES = [
+    ("PAYROLL", "Payroll & wages", "الرواتب والأجور", "operating", 10),
+    ("RENT", "Rent & utilities", "الإيجار والمرافق", "operating", 20),
+    ("SUPPLIER", "Supplier payments", "مدفوعات الموردين", "trading", 30),
+    ("CUSTOMS", "Customs & clearance", "الجمارك والتخليص", "trading", 40),
+    ("FREIGHT", "Freight & logistics", "الشحن والنقل", "trading", 50),
+    ("BANKCHG", "Bank charges & interest", "مصاريف وفوائد بنكية", "finance", 60),
+    ("LOAN", "Loan repayments", "سداد القروض", "finance", 70),
+    ("TAX", "Taxes & social insurance", "الضرائب والتأمينات", "statutory", 80),
+    ("MARKET", "Marketing & tenders", "التسويق والمناقصات", "operating", 90),
+    ("VEHICLE", "Vehicles & travel", "السيارات والانتقالات", "operating", 100),
+    ("PETTY", "Petty cash", "المصروفات النثرية", "operating", 110),
+    ("PROF", "Professional fees", "أتعاب مهنية", "operating", 120),
+    ("OTHER", "Other operating costs", "مصروفات تشغيلية أخرى", "operating", 130),
+]
 
 
-def run(db):
-    # demo users covering the scheme of delegation
-    for email, name, role in [("hr@time.eg", "Mona Adel (HR)", "hr"),
-                              ("finance@time.eg", "Nadia Hassan (Finance Manager)", "finance_manager"),
-                              ("md@time.eg", "Amr El-Bagoury (MD)", "md")]:
-        if not User.query.filter_by(email=email).first():
-            u = User(email=email, name=name, role=role)
-            u.set_password("Time2026")
-            db.session.add(u)
+def initialise(username="admin", password="", org=None, lang="en", demo=False):
+    if org:
+        set_setting("org_name", org)
+    set_setting("product_name", svc.DEFAULT_PRODUCT)
+    set_setting("default_lang", lang if lang in ("en", "ar") else "en")
+    for k, v in svc.DEFAULTS.items():
+        if k in ("org_name", "product_name", "default_lang"):
+            continue
+        from models import get_setting
+        if get_setting(k, "") == "":
+            set_setting(k, v)
 
-    s = CompanySettings.get()
-    s.company_name = "Scientific Gate Co."
-    s.company_name_ar = "شركة بوابة العلوم"
-    s.address = "Nasr City, Cairo, Egypt"
-    s.tax_id = "123-456-789"
-    s.insurance_no = "SG-2011"
-    s.pay_bank_name = "Commercial International Bank (CIB)"
-    s.pay_bank_account = "EG•• •••• •••• •••• 1120"
+    perms.seed_matrix(force=True)
+    seed_reference()
 
-    depts = {}
-    for en, ar in [("Management", "الإدارة"), ("Finance", "المالية"),
-                   ("Sales", "المبيعات"), ("Operations", "العمليات"),
-                   ("Technical", "الفني"), ("HR", "الموارد البشرية")]:
-        d = Department(name=en, name_ar=ar)
-        db.session.add(d)
-        depts[en] = d
-    db.session.flush()
+    if User.query.filter_by(username=username).first() is None:
+        u = User(username=username, full_name="System Administrator", role="admin", lang=lang)
+        u.set_password(password or "changeme123")
+        db.session.add(u)
+        db.session.commit()
 
-    grades = {}
-    grade_defs = [
-        ("G1", "Junior", "مبتدئ", 1, [(1, 6000), (2, 6600), (3, 7300), (4, 8000)]),
-        ("G2", "Officer", "أخصائي", 2, [(1, 8500), (2, 9500), (3, 10500), (4, 11500)]),
-        ("G3", "Senior", "أول", 3, [(1, 12500), (2, 14000), (3, 15500), (4, 17000)]),
-        ("G4", "Manager", "مدير", 4, [(1, 19000), (2, 22000), (3, 25000), (4, 28000)]),
-        ("G5", "Director", "مدير عام", 5, [(1, 32000), (2, 38000), (3, 45000)]),
-    ]
-    for code, name, name_ar, order, pts in grade_defs:
-        g = Grade(code=code, name=name, name_ar=name_ar, order=order)
-        db.session.add(g)
-        db.session.flush()
-        for pn, sal in pts:
-            db.session.add(SpinePoint(grade_id=g.id, point_no=pn, monthly_salary=sal))
-        grades[code] = g
-
-    med = BenefitPlan(name="Standard medical cover", name_ar="تأمين طبي أساسي",
-                      provider="MedNet Egypt", employer_cost=450, employee_cost=150,
-                      coverage="Outpatient, inpatient, pharmacy — EGP 200k/yr limit")
-    med_plus = BenefitPlan(name="Family medical cover", name_ar="تأمين طبي عائلي",
-                           provider="MedNet Egypt", employer_cost=900, employee_cost=350,
-                           coverage="Employee + dependants, dental & optical")
-    db.session.add_all([med, med_plus])
-    db.session.flush()
-
-    people = [
-        ("1001", "Amr El-Bagoury", "عمرو الباجوري", "male", "Management", "G5", 2, "Managing Director", "2011-06-01", med_plus),
-        ("1002", "Nadia Hassan", "نادية حسن", "female", "Finance", "G4", 3, "Finance Manager", "2013-03-15", med_plus),
-        ("1003", "Khaled Salah", "خالد صلاح", "male", "Finance", "G2", 4, "Credit Controller", "2016-09-01", med),
-        ("1004", "Mona Adel", "منى عادل", "female", "HR", "G3", 2, "HR Business Partner", "2018-01-10", med),
-        ("1005", "Tarek Fouad", "طارق فؤاد", "male", "Sales", "G3", 3, "Sales Lead", "2017-05-20", med),
-        ("1006", "Sara Ibrahim", "سارة إبراهيم", "female", "Sales", "G2", 2, "Account Executive", "2020-02-01", med),
-        ("1007", "Youssef Naguib", "يوسف نجيب", "male", "Technical", "G3", 1, "Senior Engineer", "2019-07-01", med),
-        ("1008", "Heba Mostafa", "هبة مصطفى", "female", "Technical", "G2", 3, "Engineer", "2021-11-15", med),
-        ("1009", "Omar Sherif", "عمر شريف", "male", "Operations", "G1", 4, "Coordinator", "2022-04-01", med),
-        ("1010", "Laila Kamal", "ليلى كمال", "female", "Operations", "G1", 2, "Assistant", "2023-08-01", None),
-        ("1011", "Hany Zaki", "هاني زكي", "male", "Sales", "G1", 3, "Sales Rep", "2024-01-15", None),
-        ("1012", "Dina Ashraf", "دينا أشرف", "female", "Finance", "G1", 1, "Accounts Clerk", "2025-03-01", med),
-    ]
-    emps = []
-    for code, en, ar, gender, dept, gcode, sp, title, hire, benefit in people:
-        g = grades[gcode]
-        sal = next((p.monthly_salary for p in g.points if p.point_no == sp),
-                   g.points[0].monthly_salary)
-        e = Employee(code=code, name=en, name_ar=ar, gender=gender,
-                     department_id=depts[dept].id, grade_id=g.id, spine_point=sp,
-                     job_title=title, hire_date=date.fromisoformat(hire),
-                     basic_salary=round(sal * 0.8), allowances=round(sal * 0.2),
-                     national_id="2" + code + "0" * 6,
-                     status="active", contract_type="indefinite",
-                     benefit_id=benefit.id if benefit else None,
-                     bank_name="CIB", bank_account="EG" + code + "00")
-        db.session.add(e)
-        emps.append(e)
-
-    # a leaver
-    leaver = Employee(code="1000", name="Ahmed Sami", name_ar="أحمد سامي",
-                      gender="male", department_id=depts["Operations"].id,
-                      grade_id=grades["G2"].id, spine_point=2, job_title="Coordinator",
-                      hire_date=date(2019, 2, 1), end_date=date(date.today().year, 3, 20),
-                      basic_salary=7600, allowances=1900, status="left",
-                      contract_type="indefinite")
-    db.session.add(leaver)
-    db.session.flush()
-
-    # loans
-    db.session.add(Loan(employee_id=emps[2].id, principal=12000, monthly_deduction=1000,
-                        outstanding=8000, reason="Personal advance"))
-    db.session.add(Loan(employee_id=emps[5].id, principal=6000, monthly_deduction=500,
-                        outstanding=2500, reason="Emergency"))
-
-    # attendance for the current month (working days SU-TH)
-    today = date.today()
-    first = today.replace(day=1)
-    for e in emps:
-        d = first
-        while d <= today:
-            if d.weekday() not in (4, 5):  # skip Fri, Sat
-                worked = 8.0
-                if random.random() < 0.06:
-                    worked = round(random.choice([0, 4, 6, 7]), 1)
-                elif random.random() < 0.10:
-                    worked = round(random.choice([9, 9.5, 10]), 1)
-                db.session.add(Attendance(
-                    employee_id=e.id, work_date=d, hours_worked=worked,
-                    expected_hours=8, ot_day_hours=max(0, worked - 8),
-                    status="present" if worked else "absent"))
-            d += timedelta(days=1)
-
-    # some leave
-    db.session.add(Leave(employee_id=emps[3].id, leave_type="sick",
-                         start_date=first, end_date=first + timedelta(days=2),
-                         days=3, paid_pct=75, note="Flu"))
-    db.session.add(Leave(employee_id=emps[7].id, leave_type="annual",
-                         start_date=first + timedelta(days=10),
-                         end_date=first + timedelta(days=14), days=5))
+    if demo:
+        seed_demo()
     db.session.commit()
-    print("Demo data seeded.")
+
+
+def seed_reference():
+    for code, en, ar, sort in REVENUE_TYPES:
+        if RevenueType.query.filter_by(code=code).first() is None:
+            db.session.add(RevenueType(code=code, name_en=en, name_ar=ar, sort=sort))
+    for code, en, ar, grp, sort in COST_CATEGORIES:
+        if CostCategory.query.filter_by(code=code).first() is None:
+            db.session.add(CostCategory(code=code, name_en=en, name_ar=ar,
+                                        group_key=grp, sort=sort))
+    db.session.commit()
+
+
+def seed_demo():
+    """A small, clearly-labelled worked example. Safe to delete in the app."""
+    from models import (CustomerCollection, BankLoanInstalment, SupplierInstalment,
+                        ChequePayable, PettyCashReplenishment, FixedWeeklyCost,
+                        FixedMonthlyCost, AdhocInflow)
+    if BankAccount.query.first() is not None:
+        return
+    today = date.today()
+    rev = {r.code: r.id for r in RevenueType.query.all()}
+    cost = {c.code: c.id for c in CostCategory.query.all()}
+
+    db.session.add_all([
+        BankAccount(name="CIB current account", bank="Commercial International Bank",
+                    account_no="100-2233-9", currency="EGP", balance=Decimal("2450000.00"),
+                    as_at=today, overdraft_limit=Decimal("1000000.00")),
+        BankAccount(name="CIB USD account", bank="Commercial International Bank",
+                    account_no="100-2233-USD", currency="USD", balance=Decimal("85000.00"),
+                    as_at=today),
+        BankAccount(name="Head office cash", bank="", currency="EGP",
+                    balance=Decimal("120000.00"), as_at=today),
+    ])
+
+    def mk(model, **kw):
+        kw.setdefault("status", ST_APPROVED)
+        kw.setdefault("created_by", "Demo data")
+        kw.setdefault("approved_by", "Demo data")
+        db.session.add(model(**kw))
+
+    for i, (no, cust, amt, wk, rt, ctype, inst) in enumerate([
+            ("C-1001", "Ministry of Health — Cairo", "1850000", 1, "TENDER", "down_payment", None),
+            ("C-1044", "Al Salam International Hospital", "620000", 2, "EQUIP", "instalment", 3),
+            ("C-1078", "Dar Al Fouad Hospital", "240000", 3, "SERVICE", "invoice", None),
+            ("C-1112", "Cleopatra Hospitals Group", "410000", 4, "PARTS", "instalment", 2),
+            ("C-1150", "As-Salam Medical Centre", "175000", 5, "CONSUM", "advance", None)]):
+        mk(CustomerCollection, customer_no=no, customer=cust, amount=Decimal(amt),
+           currency="EGP", due_date=today + timedelta(days=7 * wk + 2),
+           revenue_type_id=rev.get(rt), collection_type=ctype, instalment_no=inst,
+           contract_ref=f"CT-{1400 + i}" if ctype == "instalment" else None,
+           certainty=90 - i * 5, method="transfer", invoice_ref=f"INV-{2600 + i}")
+
+    mk(CustomerCollection, customer_no="C-2201", customer="Gulf Medical Trading (export)",
+       amount=Decimal("45000"), currency="USD", due_date=today + timedelta(days=24),
+       revenue_type_id=rev.get("EQUIP"), collection_type="down_payment",
+       certainty=80, method="transfer", invoice_ref="INV-EXP-118")
+
+    # Eight weeks of history so the rolling trend report has something to measure.
+    history = [
+        ("C-1044", "Al Salam International Hospital", "480000", "EQUIP", "instalment", 1),
+        ("C-1112", "Cleopatra Hospitals Group", "330000", "PARTS", "instalment", 1),
+        ("C-1078", "Dar Al Fouad Hospital", "215000", "SERVICE", "invoice", None),
+        ("C-1001", "Ministry of Health — Cairo", "905000", "TENDER", "down_payment", None),
+        ("C-1150", "As-Salam Medical Centre", "160000", "CONSUM", "advance", None),
+        ("C-1044", "Al Salam International Hospital", "505000", "EQUIP", "instalment", 2),
+        ("C-1078", "Dar Al Fouad Hospital", "228000", "SERVICE", "invoice", None),
+        ("C-1112", "Cleopatra Hospitals Group", "352000", "PARTS", "instalment", 2),
+    ]
+    for i, (no, cust, amt, rt, ctype, inst) in enumerate(history):
+        mk(CustomerCollection, customer_no=no, customer=cust, amount=Decimal(amt),
+           currency="EGP", due_date=today - timedelta(days=7 * (8 - i) - 1),
+           revenue_type_id=rev.get(rt), collection_type=ctype, instalment_no=inst,
+           certainty=100, method="transfer", invoice_ref=f"INV-{2500 + i}",
+           status="settled")
+
+    mk(AdhocInflow, source="Sale of delivery vehicle", amount=Decimal("310000"),
+       currency="EGP", due_date=today + timedelta(days=16), revenue_type_id=rev.get("OTHER"),
+       description="Disposal of 2019 van", certainty=100)
+
+    for n in range(1, 7):
+        mk(BankLoanInstalment, lender="CIB", facility_ref="TL-2024-08", instalment_no=n,
+           amount=Decimal("185000"), principal=Decimal("150000"), interest=Decimal("35000"),
+           currency="EGP", due_date=_add_months(today.replace(day=25), n - 1),
+           cost_category_id=cost.get("LOAN"))
+
+    for n in range(1, 4):
+        mk(SupplierInstalment, supplier="Siemens Healthineers ME", agreement_ref="SUP-2025-3",
+           instalment_no=n, amount=Decimal("62000"), currency="USD",
+           due_date=_add_months(today.replace(day=10), n), cost_category_id=cost.get("SUPPLIER"),
+           status=ST_SUBMITTED if n == 3 else ST_APPROVED)
+
+    for i, (no, payee, days, amt) in enumerate([
+            ("000451", "Egyptian Customs Authority", 9, "480000"),
+            ("000452", "Nile Freight Services", 18, "96000"),
+            ("000453", "Medical Supplies Egypt", 33, "255000")]):
+        mk(ChequePayable, cheque_no=no, payee=payee, bank="CIB", currency="EGP",
+           amount=Decimal(amt), issue_date=today, due_date=today + timedelta(days=days),
+           cheque_status="issued", cost_category_id=cost.get("CUSTOMS" if i == 0 else "SUPPLIER"))
+
+    mk(PettyCashReplenishment, employee_name="Mona Abdel Rahman", department="Service",
+       purpose="Engineer travel float", amount=Decimal("25000"), currency="EGP",
+       due_date=today + timedelta(days=5), float_limit=Decimal("30000"),
+       cost_category_id=cost.get("PETTY"))
+    mk(PettyCashReplenishment, employee_name="Hossam Fathy", department="Logistics",
+       purpose="Clearance incidentals", amount=Decimal("18000"), currency="EGP",
+       due_date=today + timedelta(days=19), float_limit=Decimal("20000"),
+       cost_category_id=cost.get("PETTY"))
+
+    mk(FixedWeeklyCost, description="Weekly wages — warehouse & drivers", weekday=3,
+       amount=Decimal("64000"), currency="EGP", cost_category_id=cost.get("PAYROLL"))
+    mk(FixedWeeklyCost, description="Fuel & vehicle running", weekday=0,
+       amount=Decimal("18500"), currency="EGP", cost_category_id=cost.get("VEHICLE"))
+
+    mk(FixedMonthlyCost, description="Office rent — Nasr City", day_of_month=1,
+       amount=Decimal("145000"), currency="EGP", cost_category_id=cost.get("RENT"))
+    mk(FixedMonthlyCost, description="Salaries — staff payroll", day_of_month=27,
+       amount=Decimal("1180000"), currency="EGP", cost_category_id=cost.get("PAYROLL"))
+    mk(FixedMonthlyCost, description="Social insurance & payroll tax", day_of_month=15,
+       amount=Decimal("218000"), currency="EGP", cost_category_id=cost.get("TAX"))
+    mk(FixedMonthlyCost, description="Utilities & communications", day_of_month=20,
+       amount=Decimal("46000"), currency="EGP", cost_category_id=cost.get("RENT"))
+
+    db.session.commit()
+
+
+def _add_months(d, n):
+    import calendar
+    y = d.year + (d.month - 1 + n) // 12
+    m = (d.month - 1 + n) % 12 + 1
+    return date(y, m, min(d.day, calendar.monthrange(y, m)[1]))

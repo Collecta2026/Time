@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}{{ t('audit') }}{% endblock %}
+{% block body %}
+<h1>{{ t('audit') }}</h1>
+<div class="card"><div class="scroll">
+<table class="tight">
+  <thead><tr><th>#</th><th>{{ t('date') }}</th><th>User</th><th>Action</th><th>Target</th><th>{{ t('detail') }}</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+  <tr><td>{{ r.id }}</td><td class="nowrap small">{{ r.at.strftime('%d %b %Y %H:%M') if r.at }}</td>
+  <td class="small">{{ r.actor }}</td><td class="small">{{ r.action }}</td>
+  <td class="small">{{ r.target }}</td><td class="small muted">{{ r.detail }}</td></tr>
+  {% else %}<tr><td colspan="6" class="muted">{{ t('no_rows') }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div></div>
+{% endblock %}

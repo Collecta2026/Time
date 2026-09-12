@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% set active = 'analysis' %}
+{% block title %}{{ t('analysis') }}{% endblock %}
+{% block body %}
+<h1>{{ t('analysis') }}</h1>
+<p class="sub">{{ a.from.label if a.from }} → {{ a.to.label if a.to }} · {{ t('egp_equivalent') }} @ {{ a.fx | money }}</p>
+
+<form class="toolbar" method="get">
+  <div class="field"><label>{{ t('from') }}</label>
+    <select name="from">{% for w in weeks %}<option value="{{ loop.index0 }}" {{ 'selected' if loop.index0 == f_i }}>{{ w.label }}</option>{% endfor %}</select></div>
+  <div class="field"><label>{{ t('to') }}</label>
+    <select name="to">{% for w in weeks %}<option value="{{ loop.index0 }}" {{ 'selected' if loop.index0 == t_i }}>{{ w.label }}</option>{% endfor %}</select></div>
+  <button class="btn sec">{{ t('filter') }}</button>
+</form>
+
+<div class="grid g3">
+  <div class="kpi in"><div class="lbl">{{ t('revenue_by_type') }}</div><div class="val">{{ a.revenue_total | money0 }}</div></div>
+  <div class="kpi out"><div class="lbl">{{ t('cost_by_category') }}</div><div class="val">{{ a.cost_total | money0 }}</div></div>
+  <div class="kpi"><div class="lbl">{{ t('cost_ratio') }}</div><div class="val">{{ a.cost_ratio | pct }}</div>
+    <div class="note">{{ t('net_movement') }} {{ a.net | money0 }}</div></div>
+</div>
+
+<div class="grid g2" style="margin-top:14px">
+  <div class="card">
+    <h2>{{ t('revenue_by_type') }}</h2>
+    <table class="tight">
+      <thead><tr><th>{{ t('revenue_by_type') }}</th><th class="num">EGP</th><th class="num">USD</th><th class="num">≡EGP</th><th class="num">{{ t('pct_of_revenue') }}</th></tr></thead>
+      <tbody>
+      {% for r in a.revenue %}
+      <tr><td>{{ r.name }}</td><td class="num">{{ r.by.EGP | money0 }}</td><td class="num">{{ r.by.USD | money0 }}</td>
+      <td class="num">{{ r.eqv | money0 }}</td><td class="num">{{ r.pct_of_revenue | pct }}
+        <div class="bar"><i style="width:{{ (r.pct_of_revenue or 0) | round(1) }}%"></i></div></td></tr>
+      {% else %}<tr><td colspan="5" class="muted">{{ t('no_rows') }}</td></tr>{% endfor %}
+      </tbody>
+      <tfoot><tr class="total"><td>{{ t('total') }}</td><td colspan="2"></td><td class="num">{{ a.revenue_total | money0 }}</td><td class="num">100.0%</td></tr></tfoot>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>{{ t('cost_by_category') }}</h2>
+    <table class="tight">
+      <thead><tr><th>{{ t('cost_by_category') }}</th><th class="num">EGP</th><th class="num">USD</th><th class="num">≡EGP</th>
+      <th class="num">{{ t('pct_of_revenue') }}</th><th class="num">{{ t('pct_of_cost') }}</th></tr></thead>
+      <tbody>
+      {% for r in a.costs %}
+      <tr><td>{{ r.name }}</td><td class="num">{{ r.by.EGP | money0 }}</td><td class="num">{{ r.by.USD | money0 }}</td>
+      <td class="num">{{ r.eqv | money0 }}</td><td class="num">{{ r.pct_of_revenue | pct }}</td>
+      <td class="num">{{ r.pct_of_cost | pct }}
+        <div class="bar"><i style="width:{{ (r.pct_of_cost or 0) | round(1) }}%"></i></div></td></tr>
+      {% else %}<tr><td colspan="6" class="muted">{{ t('no_rows') }}</td></tr>{% endfor %}
+      </tbody>
+      <tfoot><tr class="total"><td>{{ t('total') }}</td><td colspan="2"></td><td class="num">{{ a.cost_total | money0 }}</td>
+      <td class="num">{{ a.cost_ratio | pct }}</td><td class="num">100.0%</td></tr></tfoot>
+    </table>
+  </div>
+</div>
+{% endblock %}

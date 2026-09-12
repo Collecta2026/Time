@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}{{ stream_label(key) }} — {{ t('weekly_planner') }}{% endblock %}
+{% block body %}
+<h1>{{ stream_label(key) }} — {{ t('weekly_planner') }}</h1>
+<p class="sub">{{ t('planner_intro') }}</p>
+
+<div class="toolbar">
+  <a class="btn sec" href="{{ url_for('table_list', key=key) }}">{{ t('list_view') }}</a>
+  {% if can_s(key, 'enter') %}<a class="btn" href="{{ url_for('table_new', key=key) }}">+ {{ t('add') }}</a>{% endif %}
+</div>
+
+<div class="card">
+  <h2>{{ t('total') }} — {{ t('collection_type') }}</h2>
+  <div class="scroll">
+  <table class="tight">
+    <thead><tr><th>{{ t('collection_type') }}</th><th class="num">EGP</th><th class="num">USD</th></tr></thead>
+    <tbody>
+    {% for gk, gen, gar in groups %}
+      {% set gt = plan.group_totals.get(gk) %}
+      <tr><td>{{ gar if lang() == 'ar' else gen }}</td>
+        <td class="num">{{ gt.EGP | money0 if gt else 0 }}</td>
+        <td class="num">{{ gt.USD | money0 if gt else 0 }}</td></tr>
+    {% endfor %}
+    </tbody>
+    <tfoot><tr class="total"><td>{{ t('total') }}</td>
+      <td class="num">{{ plan.grand.EGP | money0 }}</td>
+      <td class="num">{{ plan.grand.USD | money0 }}</td></tr>
+      <tr class="total"><td>{{ t('egp_equivalent') }}</td>
+      <td class="num" colspan="2">{{ plan.grand_eqv | money0 }}</td></tr></tfoot>
+  </table>
+  </div>
+</div>
+
+{% for cell in plan.cells %}
+  {% if cell.rows %}
+  <div class="card">
+    <h2>{{ cell.week.label }}</h2>
+    <p class="sub">
+      {% for c in CURRENCIES %}{% if cell.totals[c] %}{{ c }} {{ cell.totals[c] | money }} &nbsp;{% endif %}{% endfor %}
+      · {{ t('egp_equivalent') }} {{ cell.eqv | money0 }}
+    </p>
+    <div class="scroll">
+    <table class="tight">
+      <thead><tr>
+        <th>{{ t('date') }}</th><th>{{ t('customer_no') }}</th><th>Customer</th>
+        <th>{{ t('collection_type') }}</th><th>Instalment</th><th>Contract / invoice</th>
+        <th class="num">{{ t('amount') }}</th><th>{{ t('currency') }}</th>
+        <th>{{ t('status') }}</th><th>{{ t('actions') }}</th>
+      </tr></thead>
+      <tbody>
+      {% for item in cell.rows %}
+        {% set r = item.row %}
+        <tr>
+          <td class="nowrap">{{ item.date | d }}</td>
+          <td>{{ r.customer_no or '' }}</td>
+          <td>{{ r.customer }}</td>
+          <td>{% for gk, gen, gar in groups %}{% if gk == item.group %}
+                <span class="badge b-in">{{ gar if lang() == 'ar' else gen }}</span>{% endif %}{% endfor %}</td>
+          <td class="num">{{ r.instalment_no if r.instalment_no is not none }}</td>
+          <td class="small muted">{{ r.contract_ref or '' }}{% if r.invoice_ref %} / {{ r.invoice_ref }}{% endif %}</td>
+          <td class="num">{{ r.amount | money }}</td>
+          <td>{{ r.currency }}</td>
+          <td><span class="badge b-{{ r.status }}">{{ t('status_' + r.status) }}</span></td>
+          <td>{% if can_s(key, 'edit') %}<a class="btn sm sec" href="{{ url_for('table_edit', key=key, rid=r.id) }}">{{ t('edit') }}</a>{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      <tfoot>
+        {% for gk, gen, gar in groups %}
+          {% set gt = cell.groups.get(gk) %}
+          {% if gt %}
+          <tr><td colspan="6" class="right small">{{ gar if lang() == 'ar' else gen }}</td>
+            <td class="num small">{% for c in CURRENCIES %}{% if gt[c] %}{{ gt[c] | money0 }} {{ c }}<br>{% endif %}{% endfor %}</td>
+            <td colspan="3"></td></tr>
+          {% endif %}
+        {% endfor %}
+      </tfoot>
+    </table>
+    </div>
+  </div>
+  {% endif %}
+{% endfor %}
+
+{% if not plan.cells | selectattr('rows') | list %}
+  <div class="card"><p class="muted">{{ t('no_rows') }}</p></div>
+{% endif %}
+{% endblock %}

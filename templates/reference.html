@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}{{ t('reference') }}{% endblock %}
+{% block body %}
+<h1>{{ t('reference') }}</h1>
+<div class="grid g2">
+  <div class="card">
+    <h2>{{ t('revenue_by_type') }}</h2>
+    <table class="tight">
+      <thead><tr><th>Code</th><th>English</th><th>العربية</th><th></th></tr></thead>
+      <tbody>
+      {% for x in revenue_types %}
+      <tr class="{{ '' if x.active else 'muted' }}"><form method="post">
+        <input type="hidden" name="kind" value="revenue"><input type="hidden" name="id" value="{{ x.id }}">
+        <td>{{ x.code }}<input type="hidden" name="code" value="{{ x.code }}"></td>
+        <td><input type="text" name="name_en" value="{{ x.name_en }}"></td>
+        <td><input type="text" name="name_ar" value="{{ x.name_ar or '' }}"></td>
+        <td class="nowrap"><button class="btn sm">{{ t('save') }}</button>
+          {% if x.active %}<button class="btn sm sec" name="remove" value="1">✕</button>{% endif %}</td>
+      </form></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <form method="post" style="margin-top:10px"><input type="hidden" name="kind" value="revenue">
+      <div class="grid g3">
+        <div class="field"><label>Code *</label><input type="text" name="code" required></div>
+        <div class="field"><label>English *</label><input type="text" name="name_en" required></div>
+        <div class="field"><label>العربية</label><input type="text" name="name_ar"></div>
+      </div><button class="btn">{{ t('add') }}</button></form>
+  </div>
+
+  <div class="card">
+    <h2>{{ t('cost_by_category') }}</h2>
+    <table class="tight">
+      <thead><tr><th>Code</th><th>English</th><th>العربية</th><th></th></tr></thead>
+      <tbody>
+      {% for x in cost_categories %}
+      <tr class="{{ '' if x.active else 'muted' }}"><form method="post">
+        <input type="hidden" name="kind" value="cost"><input type="hidden" name="id" value="{{ x.id }}">
+        <td>{{ x.code }}<input type="hidden" name="code" value="{{ x.code }}">
+            <input type="hidden" name="group_key" value="{{ x.group_key }}"></td>
+        <td><input type="text" name="name_en" value="{{ x.name_en }}"></td>
+        <td><input type="text" name="name_ar" value="{{ x.name_ar or '' }}"></td>
+        <td class="nowrap"><button class="btn sm">{{ t('save') }}</button>
+          {% if x.active %}<button class="btn sm sec" name="remove" value="1">✕</button>{% endif %}</td>
+      </form></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <form method="post" style="margin-top:10px"><input type="hidden" name="kind" value="cost">
+      <div class="grid g3">
+        <div class="field"><label>Code *</label><input type="text" name="code" required></div>
+        <div class="field"><label>English *</label><input type="text" name="name_en" required></div>
+        <div class="field"><label>العربية</label><input type="text" name="name_ar"></div>
+      </div><button class="btn">{{ t('add') }}</button></form>
+  </div>
+</div>
+{% endblock %}
