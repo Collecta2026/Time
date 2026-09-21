@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('nav_leave') }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="sub">{{ t('nav_leave') }}</div>
+  <a class="btn btn-gold" href="{{ url_for('leave_form') }}">{{ ic('plus') }}{{ t('record_leave') }}</a>
+</div>
+
+<div class="card">
+  <div class="table-wrap"><table class="data">
+    <thead><tr><th>{{ t('name') }}</th><th>{{ t('leave_type') }}</th><th>{{ t('from_date') }}</th>
+      <th>{{ t('to_date') }}</th><th class="r">{{ t('days') }}</th><th class="r">{{ t('paid_pct') }}</th><th></th></tr></thead>
+    <tbody>
+    {% for l in rows %}
+      <tr><td><a class="link" href="{{ url_for('employee_detail', eid=l.employee_id) }}">{{ loc(l.employee,'name') }}</a></td>
+          <td>{{ t(l.leave_type) }}</td><td class="num">{{ l.start_date | d }}</td>
+          <td class="num">{{ l.end_date | d }}</td><td class="r num">{{ l.days }}</td>
+          <td class="r num">{{ l.paid_pct }}%</td>
+          <td class="r"><form method="post" action="{{ url_for('leave_delete', lid=l.id) }}" data-confirm="{{ t('confirm_delete') }}" style="display:inline">
+            <button class="btn btn-danger btn-sm">{{ t('delete') }}</button></form></td></tr>
+    {% else %}<tr><td colspan="7" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endblock %}

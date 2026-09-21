@@ -1,17 +1,14 @@
-{% extends 'base.html' %}
-{% block title %}{{ t('audit') }}{% endblock %}
-{% block body %}
-<h1>{{ t('audit') }}</h1>
-<div class="card"><div class="scroll">
-<table class="tight">
-  <thead><tr><th>#</th><th>{{ t('date') }}</th><th>User</th><th>Action</th><th>Target</th><th>{{ t('detail') }}</th></tr></thead>
+{% extends "base.html" %}
+{% block heading %}{{ t('nav_audit') }}{% endblock %}
+{% block content %}
+<div class="card"><div class="table-wrap"><table class="data">
+  <thead><tr><th>{{ t('when') }}</th><th>{{ t('actor') }}</th><th>{{ t('action') }}</th><th>{{ t('period') }}</th><th>{{ t('reason') }}</th></tr></thead>
   <tbody>
-  {% for r in rows %}
-  <tr><td>{{ r.id }}</td><td class="nowrap small">{{ r.at.strftime('%d %b %Y %H:%M') if r.at }}</td>
-  <td class="small">{{ r.actor }}</td><td class="small">{{ r.action }}</td>
-  <td class="small">{{ r.target }}</td><td class="small muted">{{ r.detail }}</td></tr>
-  {% else %}<tr><td colspan="6" class="muted">{{ t('no_rows') }}</td></tr>{% endfor %}
+  {% for a in rows %}
+    <tr><td class="num">{{ a.ts.strftime('%Y-%m-%d %H:%M') if a.ts }}</td>
+        <td>{{ a.actor }}</td><td><span class="badge badge-grey">{{ a.action }}</span></td>
+        <td class="num">{{ a.target }}</td><td class="hint">{{ a.detail }}</td></tr>
+  {% else %}<tr><td colspan="5" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
   </tbody>
-</table>
-</div></div>
+</table></div></div>
 {% endblock %}

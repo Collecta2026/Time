@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('import_attendance') }}{% endblock %}
+{% block content %}
+<div class="card" style="max-width:640px"><div class="card-b">
+  <p class="hint" style="margin-bottom:16px">{{ t('import_help') }}</p>
+  <form method="post" enctype="multipart/form-data">
+    <div class="field" style="margin-bottom:16px">
+      <label>{{ t('upload_csv') }}</label>
+      <input type="file" name="file" accept=".csv" required>
+    </div>
+    <div class="form-actions" style="border:none;padding:0;margin:0">
+      <button class="btn btn-gold">{{ ic('upload') }}{{ t('upload_csv') }}</button>
+      <a class="btn btn-ghost" href="{{ url_for('attendance_template') }}">{{ ic('download') }}{{ t('download_template') }}</a>
+      <a class="btn btn-ghost" href="{{ url_for('attendance') }}">{{ t('back') }}</a>
+    </div>
+  </form>
+</div></div>
+{% endblock %}

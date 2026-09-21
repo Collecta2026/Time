@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('payment_schedule') }} · {{ run.period_label }}{% endblock %}
+{% block content %}
+<div class="print-bar no-print">
+  <a class="btn btn-ghost" href="{{ url_for('payroll_detail', rid=run.id) }}">{{ t('back') }}</a>
+  <a class="btn btn-ghost" href="{{ url_for('payroll_schedule', rid=run.id, export=1) }}">{{ ic('download') }}{{ t('export') }}</a>
+  <button class="btn btn-gold" onclick="window.print()">{{ ic('print') }}{{ t('print') }}</button>
+</div>
+
+<div class="doc">
+  <div class="doc-head">
+    <div>
+      <div class="co">{{ settings.company_name if lang=='en' else (settings.company_name_ar or settings.company_name) }}</div>
+      <div style="color:#c7d0df;font-size:13px">{{ t('payment_schedule') }} — {{ run.period_label }}</div>
+    </div>
+    <div class="meta">
+      <div>{{ t('paying_bank') }}: {{ settings.pay_bank_name or '—' }}</div>
+      <div class="num">{{ settings.pay_bank_account }}</div>
+      <div><span class="badge {{ 'badge-green' if run.status in ['authorised','paid'] else 'badge-gold' }}">{{ t(run.status) }}</span></div>
+    </div>
+  </div>
+  <div class="doc-body">
+    <table class="data">
+      <thead><tr><th>{{ t('code') }}</th><th>{{ t('name') }}</th><th>{{ t('bank_name') }}</th>
+        <th>{{ t('bank_account') }}</th><th class="r">{{ t('net_pay') }}</th></tr></thead>
+      <tbody>
+      {% for p in slips %}
+        <tr><td class="num">{{ p.employee.code }}</td><td>{{ p.employee.name }}</td>
+            <td>{{ p.employee.bank_name or '—' }}</td>
+            <td class="num">{{ p.employee.bank_account or '—' }}</td>
+            <td class="r num">{{ p.net_pay | money }}</td></tr>
+      {% endfor %}
+      </tbody>
+      <tfoot><tr><td colspan="4">{{ t('total_net_pay') }} · {{ settings.currency }}</td>
+        <td class="r num">{{ totals.net | money }}</td></tr></tfoot>
+    </table>
+
+    <h3 style="color:var(--gold);margin:26px 0 8px;font-size:13px">{{ t('remittances') }}</h3>
+    <div class="pay-grid">
+      <div class="pay-col">
+        <div class="pay-line"><span>{{ t('to_tax_authority') }}</span><span class="num">{{ totals.tax | money }}</span></div>
+        <div class="pay-line"><span>{{ t('to_nosi') }}</span><span class="num">{{ totals.si_total | money }}</span></div>
+      </div>
+      <div class="pay-col">
+        <div class="pay-line"><span>{{ t('si_employee') }}</span><span class="num">{{ totals.si_employee | money }}</span></div>
+        <div class="pay-line"><span>{{ t('si_employer') }}</span><span class="num">{{ totals.si_employer | money }}</span></div>
+        <div class="pay-line"><span>{{ t('emergency_fund') }}</span><span class="num">{{ totals.fund | money }}</span></div>
+      </div>
+    </div>
+
+    <div class="sign" style="display:flex;justify-content:space-between;margin-top:50px">
+      <div>{{ t('prepared_by') }}: {{ run.prepared_by or '____________' }}<br><br>____________________</div>
+      <div>{{ t('approved_by') }}: {{ run.approved_by or '____________' }}<br><br>____________________</div>
+      <div>{{ t('authorised_by') }}: {{ run.authorised_by or '____________' }}<br><br>____________________</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

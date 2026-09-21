@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('nav_employees') }}{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <form method="get" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <input type="text" name="q" value="{{ q }}" placeholder="{{ t('search') }}…">
+    <select name="status" onchange="this.form.submit()">
+      <option value="active" {{ 'selected' if status=='active' }}>{{ t('active') }}</option>
+      <option value="left" {{ 'selected' if status=='left' }}>{{ t('left') }}</option>
+      <option value="" {{ 'selected' if status=='' }}>{{ t('all') }}</option>
+    </select>
+    <button class="btn btn-ghost btn-sm">{{ t('search') }}</button>
+  </form>
+  <span class="spacer"></span>
+  <a class="btn btn-gold" href="{{ url_for('employee_form') }}">{{ ic('plus') }}{{ t('new_employee') }}</a>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>{{ t('code') }}</th><th>{{ t('name') }}</th><th>{{ t('department') }}</th>
+          <th>{{ t('grade') }}</th><th>{{ t('job_title') }}</th>
+          <th class="r">{{ t('basic_salary') }}</th><th>{{ t('status') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for e in rows %}
+        <tr>
+          <td class="num">{{ e.code }}</td>
+          <td><a class="link" href="{{ url_for('employee_detail', eid=e.id) }}">{{ loc(e,'name') }}</a></td>
+          <td>{{ loc(e.department,'name') if e.department else '—' }}</td>
+          <td>{{ e.grade.code if e.grade else '—' }}{% if e.spine_point %}·{{ e.spine_point }}{% endif %}</td>
+          <td>{{ loc(e,'job_title') }}</td>
+          <td class="r num">{{ e.total_monthly | money }}</td>
+          <td>{% if e.status=='active' %}<span class="badge badge-green">{{ t('active') }}</span>
+              {% else %}<span class="badge badge-grey">{{ t('left') }}</span>{% endif %}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="empty">{{ t('no_records') }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('rep_si_register') }}{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <form method="get" style="display:flex;gap:10px;align-items:center">
+    <input type="number" name="year" value="{{ y }}" style="width:110px">
+    <button class="btn btn-ghost btn-sm">{{ t('search') }}</button>
+  </form>
+  <span class="spacer"></span>
+  <a class="btn btn-ghost" href="{{ url_for('report_si', year=y, export=1) }}">{{ ic('download') }}{{ t('export') }}</a>
+</div>
+<div class="card"><div class="table-wrap"><table class="data">
+  <thead><tr><th>{{ t('period') }}</th><th>{{ t('status') }}</th><th class="r">{{ t('headcount') }}</th>
+    <th class="r">{{ t('insurable_wage') }}</th><th class="r">{{ t('si_employee') }}</th>
+    <th class="r">{{ t('si_employer') }}</th><th class="r">{{ t('emergency_fund') }}</th>
+    <th class="r">{{ t('remittance_total') }}</th><th></th></tr></thead>
+  <tbody>
+  {% for x in reg %}
+    {% set badge = {'draft':'badge-grey','prepared':'badge-gold','approved':'badge-gold','authorised':'badge-green','paid':'badge-green'} %}
+    <tr><td class="num">{{ x.run.period_label }}</td>
+        <td><span class="badge {{ badge.get(x.run.status,'badge-grey') }}">{{ t(x.run.status) }}</span></td>
+        <td class="r num">{{ x.headcount }}</td>
+        <td class="r num">{{ x.insurable | money }}</td>
+        <td class="r num">{{ x.employee | money }}</td>
+        <td class="r num">{{ x.employer | money }}</td>
+        <td class="r num">{{ x.fund | money }}</td>
+        <td class="r num"><b>{{ x.total | money }}</b></td>
+        <td class="r"><a class="btn btn-ghost btn-sm" href="{{ url_for('payroll_insurance', rid=x.run.id) }}">{{ t('insurance_schedule') }}</a></td></tr>
+  {% else %}<tr><td colspan="9" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+  </tbody>
+  <tfoot><tr><td colspan="4">{{ t('total') }}</td>
+    <td class="r num">{{ (reg | sum(attribute='employee')) | money }}</td>
+    <td class="r num">{{ (reg | sum(attribute='employer')) | money }}</td>
+    <td class="r num">{{ (reg | sum(attribute='fund')) | money }}</td>
+    <td class="r num">{{ (reg | sum(attribute='total')) | money }}</td><td></td></tr></tfoot>
+</table></div></div>
+<p class="hint" style="margin-top:12px">{{ t('insurance_no') }}: {{ settings.insurance_no or '—' }}</p>
+{% endblock %}

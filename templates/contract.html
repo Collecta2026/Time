@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('employment_contract') }}{% endblock %}
+{% block content %}
+<div class="print-bar no-print">
+  <a class="btn btn-ghost" href="{{ url_for('employee_detail', eid=e.id) }}">{{ t('back') }}</a>
+  <button class="btn btn-gold" onclick="window.print()">{{ ic('print') }}{{ t('print') }}</button>
+</div>
+
+<div class="contract-doc" dir="rtl" lang="ar">
+  <h1>عقد عمل</h1>
+  <h2>وفقاً لأحكام قانون العمل المصري رقم 14 لسنة 2025</h2>
+
+  <p class="clause">إنه في يوم ______ الموافق ______ / ______ / ٢٠___، تم الاتفاق بين كلٍّ من:</p>
+
+  <p class="clause"><b>الطرف الأول (صاحب العمل):</b>
+    {{ s.company_name_ar or s.company_name }}،
+    {% if s.address %}وعنوانه: {{ s.address }}،{% endif %}
+    {% if s.tax_id %}بطاقة ضريبية رقم: {{ s.tax_id }}،{% endif %}
+    ويمثله المدير المسؤول.</p>
+
+  <p class="clause"><b>الطرف الثاني (العامل):</b>
+    السيد/ {{ e.name_ar or e.name }}،
+    {% if e.national_id %}الرقم القومي: {{ e.national_id }}،{% endif %}
+    {% if e.address %}المقيم في: {{ e.address }}.{% endif %}</p>
+
+  <p class="clause"><b>البند الأول — طبيعة العمل:</b>
+    يلتزم الطرف الثاني بالعمل لدى الطرف الأول بوظيفة
+    «{{ e.job_title_ar or e.job_title or '—' }}»
+    بقسم «{{ (e.department.name_ar or e.department.name) if e.department else '—' }}».</p>
+
+  <p class="clause"><b>البند الثاني — مدة العقد:</b>
+    {% if e.contract_type=='fixed' %}عقد محدد المدة
+    {% elif e.contract_type=='probation' %}عقد تحت الاختبار
+    {% else %}عقد غير محدد المدة{% endif %}
+    يبدأ اعتباراً من {{ e.hire_date | d if e.hire_date else '______' }}
+    {% if e.end_date %} وينتهي في {{ e.end_date | d }}{% endif %}.</p>
+
+  <p class="clause"><b>البند الثالث — فترة الاختبار:</b>
+    يخضع العامل لفترة اختبار مدتها {{ s.probation_months }} أشهر من تاريخ الالتحاق بالعمل.</p>
+
+  <p class="clause"><b>البند الرابع — الأجر:</b>
+    يتقاضى الطرف الثاني أجراً أساسياً شهرياً قدره
+    {{ e.basic_salary | money }} {{ s.currency }}،
+    وبدلات قدرها {{ e.allowances | money }} {{ s.currency }}،
+    ليصبح إجمالي الأجر الشهري {{ e.total_monthly | money }} {{ s.currency }}،
+    يُصرف في نهاية كل شهر ميلادي.</p>
+
+  <p class="clause"><b>البند الخامس — ساعات العمل:</b>
+    تكون ساعات العمل {{ s.standard_daily_hours }} ساعات يومياً بحد أقصى
+    {{ s.standard_weekly_hours }} ساعة أسبوعياً، مع أحقية العامل في أجر إضافي عن ساعات العمل الإضافية
+    بواقع {{ s.overtime_day_pct }}% نهاراً و{{ s.overtime_night_pct }}% ليلاً أو في أيام الراحة.</p>
+
+  <p class="clause"><b>البند السادس — التأمينات الاجتماعية:</b>
+    يخضع الطرف الثاني لأحكام قانون التأمينات الاجتماعية والمعاشات رقم 148 لسنة 2019،
+    ويتحمل نسبة 11% من أجر الاشتراك التأميني، بينما يتحمل صاحب العمل نسبة 18.75% بالإضافة إلى 1% لصندوق الطوارئ.</p>
+
+  <p class="clause"><b>البند السابع — الإجازات:</b>
+    يستحق العامل إجازاته السنوية والمرضية والعارضة وفقاً لأحكام قانون العمل رقم 14 لسنة 2025،
+    وبما لا يقل عن الحدود المقررة قانوناً.</p>
+
+  <p class="clause"><b>البند الثامن — التزامات العامل:</b>
+    يلتزم الطرف الثاني بأداء عمله بأمانة ودقة، وبالحفاظ على أسرار العمل وممتلكات المنشأة،
+    واتباع تعليمات صاحب العمل واللوائح الداخلية المعتمدة.</p>
+
+  <p class="clause"><b>البند التاسع — إنهاء العقد:</b>
+    يخضع إنهاء هذا العقد لأحكام قانون العمل رقم 14 لسنة 2025، مع مراعاة مواعيد الإخطار المقررة قانوناً.</p>
+
+  <p class="clause"><b>البند العاشر — أحكام عامة:</b>
+    يخضع هذا العقد فيما لم يرد به نص لأحكام قانون العمل المصري ولائحته التنفيذية،
+    وقد حُرر من أربع نسخ بيد كل طرف نسخة، وتودع نسخة بمكتب التأمينات الاجتماعية المختص ونسخة بمكتب العمل.</p>
+
+  <div class="sign">
+    <div>
+      <div>الطرف الأول (صاحب العمل)</div>
+      <div style="margin-top:40px">التوقيع: ____________________</div>
+    </div>
+    <div>
+      <div>الطرف الثاني (العامل)</div>
+      <div style="margin-top:40px">التوقيع: ____________________</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

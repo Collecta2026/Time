@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('rep_payroll_dept') }}{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <form method="get" style="display:flex;gap:10px;align-items:center">
+    <label class="hint">{{ t('select_run') }}</label>
+    <select name="run" onchange="this.form.submit()">
+      {% for r in runs %}<option value="{{ r.id }}" {{ 'selected' if run and r.id==run.id }}>{{ r.period_label }} · {{ t(r.status) }}</option>{% endfor %}
+    </select>
+    <noscript><button class="btn btn-ghost btn-sm">{{ t('search') }}</button></noscript>
+  </form>
+  <span class="spacer"></span>
+  {% if run %}<a class="btn btn-ghost" href="{{ url_for('report_payroll', run=run.id, export=1) }}">{{ ic('download') }}{{ t('export') }}</a>{% endif %}
+</div>
+
+{% if not run %}
+  <div class="card"><div class="card-b empty">{{ t('no_records') }}</div></div>
+{% else %}
+<div class="card"><div class="table-wrap"><table class="data">
+  <thead><tr><th>{{ t('by_department') }}</th><th class="r">{{ t('headcount') }}</th>
+    <th class="r">{{ t('gross') if t('gross')!='gross' else 'Gross' }}</th>
+    <th class="r">{{ t('si_employee') }}</th><th class="r">{{ t('si_employer') }}</th>
+    <th class="r">{{ t('income_tax') }}</th><th class="r">{{ t('deductions') }}</th>
+    <th class="r">{{ t('net_pay') }}</th><th class="r">{{ t('employer_cost') }}</th></tr></thead>
+  <tbody>
+  {% for g in groups %}
+    <tr><td><b>{{ g.name }}</b></td><td class="r num">{{ g.headcount }}</td>
+        <td class="r num">{{ g.gross | money }}</td>
+        <td class="r num">{{ g.si_employee | money }}</td>
+        <td class="r num">{{ g.si_employer | money }}</td>
+        <td class="r num">{{ g.tax | money }}</td>
+        <td class="r num">{{ g.deductions | money }}</td>
+        <td class="r num"><b>{{ g.net | money }}</b></td>
+        <td class="r num">{{ g.employer_cost | money }}</td></tr>
+  {% endfor %}
+  </tbody>
+  <tfoot><tr><td>{{ t('organisation_total') }}</td><td class="r num">{{ org.headcount }}</td>
+    <td class="r num">{{ org.gross | money }}</td>
+    <td class="r num">{{ org.si_employee | money }}</td>
+    <td class="r num">{{ org.si_employer | money }}</td>
+    <td class="r num">{{ org.tax | money }}</td>
+    <td class="r num">{{ org.deductions | money }}</td>
+    <td class="r num">{{ org.net | money }}</td>
+    <td class="r num">{{ org.employer_cost | money }}</td></tr></tfoot>
+</table></div></div>
+<p class="hint" style="margin-top:12px">{{ settings.currency }} · {{ run.period_label }} · {{ t(run.status) }}</p>
+{% endif %}
+{% endblock %}

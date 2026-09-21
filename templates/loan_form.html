@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('new_loan') }}{% endblock %}
+{% block content %}
+<form method="post" class="card" style="max-width:640px"><div class="card-b">
+  <div class="fields">
+    <div class="field full"><label>{{ t('name') }}</label>
+      <select name="employee_id" required>
+        {% for e in employees %}<option value="{{ e.id }}">{{ e.code }} · {{ loc(e,'name') }}</option>{% endfor %}
+      </select></div>
+    <div class="field"><label>{{ t('issue_date') }}</label><input type="date" name="issue_date"></div>
+    <div class="field"><label>{{ t('principal') }}</label><input type="number" step="0.01" name="principal" required></div>
+    <div class="field"><label>{{ t('monthly_deduction') }}</label><input type="number" step="0.01" name="monthly_deduction" required></div>
+    <div class="field"><label>{{ t('reason') }}</label><input name="reason"></div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-gold">{{ t('save') }}</button>
+    <a class="btn btn-ghost" href="{{ url_for('loans') }}">{{ t('cancel') }}</a>
+  </div>
+</div></form>
+{% endblock %}

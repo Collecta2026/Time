@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('rep_leave_provision') }}{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <form method="get" style="display:flex;gap:10px;align-items:center">
+    <input type="number" name="year" value="{{ y }}" style="width:110px">
+    <select name="month" onchange="this.form.submit()">
+      {% for i in range(1,13) %}<option value="{{ i }}" {{ 'selected' if i==m }}>{{ '%02d'|format(i) }}</option>{% endfor %}
+    </select>
+    <button class="btn btn-ghost btn-sm">{{ t('search') }}</button>
+  </form>
+  <span class="spacer"></span>
+  {% if is_posted %}<span class="badge badge-green" style="align-self:center">{{ t('posted') }}</span>{% endif %}
+  <a class="btn btn-ghost" href="{{ url_for('report_leave_provision', year=y, month=m, export=1) }}">{{ ic('download') }}{{ t('export') }}</a>
+  {% if current_user.has_role('finance_manager') %}
+  <form method="post" action="{{ url_for('leave_provision_post') }}" style="display:inline">
+    <input type="hidden" name="year" value="{{ y }}"><input type="hidden" name="month" value="{{ m }}">
+    <button class="btn btn-gold">{{ t('post_provision') }}</button>
+  </form>
+  {% endif %}
+</div>
+
+<div class="tiles" style="margin-bottom:20px">
+  <div class="tile"><div class="k">{{ ic('cash') }}{{ t('total_liability') }}</div>
+    <div class="v num">{{ totals.provision | money }} <small>{{ settings.currency }}</small></div></div>
+  <div class="tile"><div class="k">{{ ic('sun') }}{{ t('monthly_accrual') }}</div>
+    <div class="v num">{{ totals.monthly_accrual | money }} <small>{{ settings.currency }}</small></div></div>
+  <div class="tile"><div class="k">{{ ic('clock') }}{{ t('balance_days') }}</div>
+    <div class="v num">{{ totals.balance_days }}</div></div>
+</div>
+
+<div class="card"><div class="table-wrap"><table class="data">
+  <thead><tr><th>{{ t('code') }}</th><th>{{ t('name') }}</th>
+    <th class="r">{{ t('entitlement_days') }}</th><th class="r">{{ t('accrued_days') }}</th>
+    <th class="r">{{ t('taken_days') }}</th><th class="r">{{ t('balance_days') }}</th>
+    <th class="r">{{ t('daily_rate') }}</th><th class="r">{{ t('provision_value') }}</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr><td class="num">{{ r.emp.code }}</td><td>{{ loc(r.emp,'name') }}</td>
+        <td class="r num">{{ r.entitlement }}</td><td class="r num">{{ r.accrued }}</td>
+        <td class="r num">{{ r.taken }}</td><td class="r num">{{ r.balance }}</td>
+        <td class="r num">{{ r.daily | money }}</td>
+        <td class="r num"><b>{{ r.provision | money }}</b></td></tr>
+  {% else %}<tr><td colspan="8" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+  </tbody>
+  <tfoot><tr><td colspan="5">{{ t('total') }}</td>
+    <td class="r num">{{ totals.balance_days }}</td><td></td>
+    <td class="r num">{{ totals.provision | money }}</td></tr></tfoot>
+</table></div></div>
+
+{% if history %}
+<div class="card" style="margin-top:20px">
+  <div class="card-h"><h2>{{ t('movement') }} — {{ y }}</h2></div>
+  <div class="table-wrap"><table class="data">
+    <thead><tr><th>{{ t('period') }}</th><th class="r">{{ t('monthly_accrual') }}</th><th class="r">{{ t('provision_value') }}</th></tr></thead>
+    <tbody>
+    {% for mon, h in history %}
+      <tr><td class="num">{{ y }}-{{ '%02d'|format(mon) }}</td>
+          <td class="r num">{{ h.accrual | money }}</td>
+          <td class="r num">{{ h.provision | money }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endif %}
+
+<p class="hint" style="margin-top:12px">
+  Provision = accrued-but-untaken statutory annual leave × daily rate (monthly pay ÷ {{ settings.days_per_month }}).
+  Entitlement tiers: {{ settings.annual_leave_y1 }}/{{ settings.annual_leave_std }}/{{ settings.annual_leave_senior }} days.
+</p>
+{% endblock %}

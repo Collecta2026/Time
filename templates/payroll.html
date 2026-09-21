@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('nav_payroll') }}{% endblock %}
+{% block content %}
+{% if current_user.has_role('hr') %}
+<div class="card" style="margin-bottom:20px"><div class="card-b">
+  <form method="post" action="{{ url_for('payroll_new') }}" style="display:flex;gap:12px;align-items:end;flex-wrap:wrap">
+    <div class="field"><label>{{ t('period') }}</label>
+      <input type="number" name="year" value="{{ current_year }}" style="width:120px"></div>
+    <div class="field"><label>&nbsp;</label>
+      <select name="month" style="width:120px">
+        {% for i in range(1,13) %}<option value="{{ i }}" {{ 'selected' if i==current_month }}>{{ '%02d'|format(i) }}</option>{% endfor %}
+      </select></div>
+    <button class="btn btn-gold">{{ ic('cash') }}{{ t('run') }}</button>
+  </form>
+</div></div>
+{% endif %}
+
+<div class="card">
+  <div class="card-h"><h2>{{ t('nav_payroll') }}</h2></div>
+  <div class="table-wrap"><table class="data">
+    <thead><tr><th>{{ t('period') }}</th><th class="r">{{ t('headcount') }}</th>
+      <th class="r">{{ t('gross') }}</th><th class="r">{{ t('net_pay') }}</th>
+      <th>{{ t('status') }}</th><th></th></tr></thead>
+    <tbody>
+    {% for r in runs %}
+      {% set badge = {'draft':'badge-grey','prepared':'badge-gold','approved':'badge-gold','authorised':'badge-green','paid':'badge-green'} %}
+      <tr><td class="num"><a class="link" href="{{ url_for('payroll_detail', rid=r.id) }}">{{ r.period_label }}</a></td>
+          <td class="r num">{{ r.payslips | length }}</td>
+          <td class="r num">{{ (r.payslips | sum(attribute='gross')) | money }}</td>
+          <td class="r num">{{ (r.payslips | sum(attribute='net_pay')) | money }}</td>
+          <td><span class="badge {{ badge.get(r.status,'badge-grey') }}">{{ t(r.status) }}</span></td>
+          <td class="r"><a class="btn btn-ghost btn-sm" href="{{ url_for('payroll_detail', rid=r.id) }}">{{ t('actions') }}</a></td></tr>
+    {% else %}<tr><td colspan="6" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endblock %}

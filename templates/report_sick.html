@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('rep_sick') }}{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <form method="get" style="display:flex;gap:10px;align-items:center">
+    <input type="number" name="year" value="{{ y }}" style="width:110px">
+    <button class="btn btn-ghost btn-sm">{{ t('search') }}</button>
+  </form>
+  <span class="spacer"></span>
+  <a class="btn btn-ghost" href="{{ url_for('report_sick', year=y, export=1) }}">{{ ic('download') }}{{ t('export') }}</a>
+</div>
+<div class="card"><div class="table-wrap"><table class="data">
+  <thead><tr><th>{{ t('code') }}</th><th>{{ t('name') }}</th>
+    <th class="r">{{ t('sick') }} {{ t('days') }}</th><th class="r">#</th></tr></thead>
+  <tbody>
+  {% for code, name, days, episodes in rows %}
+    <tr><td class="num">{{ code }}</td><td>{{ name }}</td>
+        <td class="r num">{{ days }}</td><td class="r num">{{ episodes }}</td></tr>
+  {% else %}<tr><td colspan="4" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+  </tbody>
+</table></div></div>
+{% endblock %}

@@ -1,106 +1,72 @@
-{% extends 'base.html' %}
-{% set active = 'dashboard' %}
-{% block title %}{{ t('dashboard') }}{% endblock %}
-{% block body %}
-<h1>{{ t('dashboard') }}</h1>
-<p class="sub">{{ t('next_6_weeks', n=dash.rows|length) }} · {{ t('week_commencing') }} {{ dash.rows[0].week.start | d if dash.rows }}</p>
+{% extends "base.html" %}
+{% block heading %}{{ t('nav_dashboard') }}{% endblock %}
+{% block content %}
+{% set maxd = (dept_rows | map(attribute=1) | max) or 1 %}
 
-<div class="grid g4">
-  {% for c in CURRENCIES %}
-  <div class="kpi">
-    <div class="lbl">{{ t('opening') }} — {{ c }}</div>
-    <div class="val">{{ dash.opening[c] | money0 }}</div>
-    <div class="note">{{ t('closing') }} {{ dash.closing[c] | money0 }}</div>
+<div class="hero">
+  <div>
+    <div class="label">{{ t('monthly_payroll') }} · {{ settings.currency }}</div>
+    <div class="big num">{{ gross | money }}</div>
+    <div class="label" style="margin-top:8px">{{ t('employer_cost') }}: <b style="color:#fff">{{ er_cost | money }} {{ settings.currency }}</b></div>
   </div>
-  {% endfor %}
-  <div class="kpi in">
-    <div class="lbl">{{ t('cash_in') }} ({{ t('egp_equivalent') }})</div>
-    <div class="val">{{ dash.totals_eqv.inflow | money0 }}</div>
-    <div class="note">EGP {{ dash.totals.inflow.EGP | money0 }} · USD {{ dash.totals.inflow.USD | money0 }}</div>
-  </div>
-  <div class="kpi out">
-    <div class="lbl">{{ t('cash_out') }} ({{ t('egp_equivalent') }})</div>
-    <div class="val">{{ dash.totals_eqv.outflow | money0 }}</div>
-    <div class="note">EGP {{ dash.totals.outflow.EGP | money0 }} · USD {{ dash.totals.outflow.USD | money0 }}</div>
+  <div class="aside">
+    <div class="label">{{ t('headcount') }}</div>
+    <div class="n">{{ headcount }}</div>
   </div>
 </div>
 
-<div class="grid g2" style="margin-top:14px">
+<div class="tiles" style="margin-top:20px">
+  <div class="tile">
+    <div class="k">{{ ic('wallet') }}{{ t('outstanding_loans') }}</div>
+    <div class="v num">{{ outstanding | money }} <small>{{ settings.currency }}</small></div>
+  </div>
+  <div class="tile">
+    <div class="k">{{ ic('users') }}{{ t('starters_ytd') }}</div>
+    <div class="v num">{{ starters }}</div>
+  </div>
+  <div class="tile">
+    <div class="k">{{ ic('users') }}{{ t('leavers_ytd') }}</div>
+    <div class="v num">{{ leavers }}</div>
+  </div>
+  <div class="tile">
+    <div class="k">{{ ic('cash') }}{{ t('avg_salary') }}</div>
+    <div class="v num">{{ (gross / headcount if headcount else 0) | money }} <small>{{ settings.currency }}</small></div>
+  </div>
+</div>
+
+<div class="grid" style="grid-template-columns:1.2fr 1fr;margin-top:20px">
   <div class="card">
-    <h2>{{ t('alerts') }}</h2>
-    {% set shorts = [] %}
-    {% for c in CURRENCIES %}{% if dash.first_short[c] %}{% set _ = shorts.append(c) %}{% endif %}{% endfor %}
-    {% if not dash.alerts and not shorts %}
-      <p class="muted">{{ t('no_alerts') }}</p>
-    {% else %}
-      {% for a in dash.alerts %}
-        <div class="flash {{ 'danger' if a.level == 'danger' else 'warning' }}">
-          <b>{{ a.week.label }}</b> — {{ t(a.key) }}: {{ a.amount | money }} {{ a.currency }}
+    <div class="card-h"><h2>{{ t('by_department') }}</h2></div>
+    <div class="card-b">
+      {% for name, count in dept_rows %}
+        <div class="bar-row">
+          <span class="lbl">{{ name }}</span>
+          <span class="bar-track"><span class="bar-fill" style="width:{{ (count / maxd * 100) | round(0, 'floor') }}%"></span></span>
+          <span class="n num">{{ count }}</span>
         </div>
+      {% else %}
+        <div class="empty">{{ t('no_records') }}</div>
       {% endfor %}
-      {% for c in CURRENCIES %}{% if dash.first_short[c] and dash.first_short[c].index >= dash.rows|length %}
-        <div class="flash warning">{{ t('first_shortage') }} ({{ c }}) — {{ dash.first_short[c].label }}</div>
-      {% endif %}{% endfor %}
-    {% endif %}
-    <table class="tight" style="margin-top:8px">
-      <tr><th>{{ t('lowest_balance') }}</th><th class="num">EGP</th><th class="num">USD</th></tr>
-      <tr>
-        <td class="muted small">{{ t('week') }}</td>
-        <td class="num">{{ dash.lowest.EGP.week.short if dash.lowest.EGP.week }}</td>
-        <td class="num">{{ dash.lowest.USD.week.short if dash.lowest.USD.week }}</td>
-      </tr>
-      <tr>
-        <td class="muted small">{{ t('closing') }}</td>
-        <td class="num {{ 'neg' if dash.lowest.EGP.amount < 0 }}">{{ dash.lowest.EGP.amount | money0 }}</td>
-        <td class="num {{ 'neg' if dash.lowest.USD.amount < 0 }}">{{ dash.lowest.USD.amount | money0 }}</td>
-      </tr>
-    </table>
+    </div>
   </div>
 
   <div class="card">
-    <h2>{{ t('banks') }}</h2>
-    <table class="tight">
-      <tr><th>{{ t('account_name') }}</th><th>{{ t('currency') }}</th><th class="num">{{ t('balance') }}</th></tr>
-      {% for b in dash.banks %}
-      <tr class="{{ '' if b.include_in_forecast else 'muted' }}">
-        <td>{{ b.name }}{% if not b.include_in_forecast %} <span class="badge b-cancelled">excl.</span>{% endif %}</td>
-        <td>{{ b.currency }}</td><td class="num">{{ b.balance | money0 }}</td>
-      </tr>
-      {% else %}<tr><td colspan="3" class="muted">{{ t('no_rows') }}</td></tr>{% endfor %}
-      <tr class="total"><td>{{ t('egp_equivalent') }}</td><td></td><td class="num">{{ dash.opening_eqv | money0 }}</td></tr>
-    </table>
-  </div>
-</div>
-
-<div class="card">
-  <h2>{{ t('next_6_weeks', n=dash.rows|length) }}</h2>
-  <div class="scroll">
-  <table class="fc">
-    <thead><tr>
-      <th>{{ t('week') }}</th>
-      {% for c in CURRENCIES %}
-        <th class="num">{{ t('opening') }} {{ c }}</th><th class="num">{{ t('cash_in') }} {{ c }}</th>
-        <th class="num">{{ t('cash_out') }} {{ c }}</th><th class="num">{{ t('closing') }} {{ c }}</th>
-      {% endfor %}
-      <th class="num">{{ t('closing') }} ({{ t('egp_equivalent') }})</th><th></th>
-    </tr></thead>
-    <tbody>
-      {% for r in dash.rows %}
-      <tr>
-        <td class="nowrap"><b>{{ r.week.label }}</b></td>
-        {% for c in CURRENCIES %}
-          <td class="num {{ 'ovr' if r.overridden[c] }}">{{ r.opening[c] | money0 }}</td>
-          <td class="num pos">{{ r.inflow[c] | money0 }}</td>
-          <td class="num neg">{{ r.outflow[c] | money0 }}</td>
-          <td class="num {{ 'short' if r.closing[c] < 0 }}">{{ r.closing[c] | money0 }}</td>
+    <div class="card-h"><h2>{{ t('recent_hires') }}</h2></div>
+    <div class="table-wrap">
+      <table class="data">
+        <tbody>
+        {% for e in recent %}
+          <tr>
+            <td><a class="link" href="{{ url_for('employee_detail', eid=e.id) }}">{{ loc(e,'name') }}</a>
+                <div class="hint">{{ e.job_title }}</div></td>
+            <td class="r num">{{ e.hire_date | d }}</td>
+          </tr>
+        {% else %}
+          <tr><td class="empty">{{ t('no_records') }}</td></tr>
         {% endfor %}
-        <td class="num"><b>{{ r.closing_eqv | money0 }}</b></td>
-        <td><a class="btn sm sec" href="{{ url_for('week_detail', week_id=r.week.week_id) }}">{{ t('detail') }}</a></td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+        </tbody>
+      </table>
+    </div>
   </div>
-  <p class="hint">{{ t('fx_rate') }}: {{ dash.fx | money }} · {% if dash.forecast.include_pending %}{{ t('include_pending') }}{% else %}{{ t('committed') }}{% endif %}</p>
 </div>
 {% endblock %}

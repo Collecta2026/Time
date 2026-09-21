@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block heading %}{{ t('nav_loans') }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div class="sub">{{ t('nav_loans') }} — {{ settings.currency }}</div>
+  <a class="btn btn-gold" href="{{ url_for('loan_form') }}">{{ ic('plus') }}{{ t('new_loan') }}</a>
+</div>
+
+<div class="card">
+  <div class="table-wrap"><table class="data">
+    <thead><tr>
+      <th>{{ t('name') }}</th><th>{{ t('issue_date') }}</th><th class="r">{{ t('principal') }}</th>
+      <th class="r">{{ t('monthly_deduction') }}</th><th class="r">{{ t('outstanding') }}</th>
+      <th>{{ t('status') }}</th><th>{{ t('actions') }}</th>
+    </tr></thead>
+    <tbody>
+    {% for l in rows %}
+      <tr>
+        <td><a class="link" href="{{ url_for('employee_detail', eid=l.employee_id) }}">{{ loc(l.employee,'name') }}</a></td>
+        <td class="num">{{ l.issue_date | d }}</td>
+        <td class="r num">{{ l.principal | money }}</td>
+        <td class="r num">{{ l.monthly_deduction | money }}</td>
+        <td class="r num"><b>{{ l.outstanding | money }}</b></td>
+        <td><span class="badge {{ 'badge-gold' if l.status=='active' else 'badge-grey' }}">{{ t(l.status) }}</span></td>
+        <td>
+          {% if l.status=='active' %}
+          <form method="post" action="{{ url_for('loan_pay', lid=l.id) }}" style="display:flex;gap:6px">
+            <input type="number" step="0.01" name="amount" placeholder="0.00" style="width:110px" required>
+            <button class="btn btn-ghost btn-sm">{{ t('add') }}</button>
+          </form>
+          {% else %}—{% endif %}
+        </td>
+      </tr>
+    {% else %}<tr><td colspan="7" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endblock %}
