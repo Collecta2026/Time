@@ -44,7 +44,7 @@ def static(filename):
     abort(404)
 
 db.init_app(app)
-login_manager = LoginManager(app)
+login_manager.login_message = None
 login_manager.login_view = "login"
 
 
