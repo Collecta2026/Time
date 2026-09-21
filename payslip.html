@@ -48,6 +48,7 @@
       <span class="lbl">{{ t('net_pay') }} · {{ settings.currency }}</span>
       <span class="amt num">{{ p.net_pay | money }}</span>
     </div>
+    {% if p.comment %}<p class="hint" style="margin-top:12px"><b>{{ t('comment') }}:</b> {{ p.comment }}</p>{% endif %}
 
     <div class="pay-grid" style="margin-top:24px">
       <div class="pay-col">

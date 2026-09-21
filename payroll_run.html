@@ -81,11 +81,12 @@
       <th>{{ t('code') }}</th><th>{{ t('name') }}</th>
       <th class="r">{{ t('gross') }}</th><th class="r">{{ t('si_employee') }}</th>
       <th class="r">{{ t('income_tax') }}</th><th class="r">{{ t('nav_loans') }}</th>
-      <th class="r">{{ t('deductions') }}</th><th class="r">{{ t('net_pay') }}</th><th></th>
+      <th class="r">{{ t('deductions') }}</th><th class="r">{{ t('net_pay') }}</th>
+      <th>{{ t('comment') }}</th><th></th>
     </tr></thead>
     <tbody>
     {% for p in slips %}
-      <tr>
+      <tr id="e{{ p.employee_id }}">
         <td class="num">{{ p.employee.code }}</td>
         <td>{{ loc(p.employee,'name') }}</td>
         <td class="r num">{{ p.gross | money }}</td>
@@ -94,9 +95,17 @@
         <td class="r num">{{ p.loan_deduction | money }}</td>
         <td class="r num">{{ p.total_deductions | money }}</td>
         <td class="r num"><b>{{ p.net_pay | money }}</b></td>
+        <td>
+          {% if current_user.has_role('hr','finance_manager','md') %}
+          <form method="post" action="{{ url_for('payslip_comment', pid=p.id) }}" style="display:flex;gap:4px">
+            <input name="comment" value="{{ p.comment or '' }}" placeholder="…" style="min-width:150px;font-size:12px;padding:4px 8px">
+            <button class="btn btn-ghost btn-sm" title="{{ t('save_comment') }}">✓</button>
+          </form>
+          {% else %}<span class="hint">{{ p.comment }}</span>{% endif %}
+        </td>
         <td class="r"><a class="btn btn-ghost btn-sm" href="{{ url_for('payslip', pid=p.id) }}">{{ t('payslip') }}</a></td>
       </tr>
-    {% else %}<tr><td colspan="9" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
+    {% else %}<tr><td colspan="10" class="empty">{{ t('no_records') }}</td></tr>{% endfor %}
     </tbody>
     <tfoot><tr>
       <td colspan="2">{{ t('total') }}</td>
@@ -105,11 +114,32 @@
       <td class="r num">{{ totals.tax | money }}</td>
       <td class="r num"></td>
       <td class="r num">{{ totals.deductions | money }}</td>
-      <td class="r num">{{ totals.net | money }}</td><td></td>
+      <td class="r num">{{ totals.net | money }}</td><td></td><td></td>
     </tr></tfoot>
   </table></div>
 </div>
 
+{% if dept_rows %}
+<div class="card" style="margin-top:20px">
+  <div class="card-h" style="display:flex;justify-content:space-between;align-items:center">
+    <h2>{{ t('by_department') }}</h2>
+    <a class="btn btn-ghost btn-sm" href="{{ url_for('report_payroll', run=run.id) }}">{{ t('rep_payroll_dept') }}</a>
+  </div>
+  <div class="table-wrap"><table class="data">
+    <thead><tr><th>{{ t('by_department') }}</th><th class="r">{{ t('headcount') }}</th>
+      <th class="r">{{ t('net_pay') }}</th><th class="r">{{ t('employer_cost') }}</th></tr></thead>
+    <tbody>
+    {% for d in dept_rows %}
+      <tr><td>{{ d.name }}</td><td class="r num">{{ d.headcount }}</td>
+          <td class="r num">{{ d.net | money }}</td><td class="r num">{{ d.employer_cost | money }}</td></tr>
+    {% endfor %}
+    </tbody>
+    <tfoot><tr><td>{{ t('organisation_total') }}</td><td class="r num">{{ slips | length }}</td>
+      <td class="r num">{{ totals.net | money }}</td>
+      <td class="r num">{{ totals.employer_cost | money }}</td></tr></tfoot>
+  </table></div>
+</div>
+{% endif %}
 {% if not run.locked and current_user.has_role('hr') %}
 <div style="margin-top:18px">
   <form method="post" action="{{ url_for('payroll_delete', rid=run.id) }}" data-confirm="{{ t('confirm_delete') }}">
